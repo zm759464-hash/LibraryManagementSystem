@@ -1,0 +1,15 @@
+{
+    "name": "lenovo/library-management-system",
+    "autoload": {
+        "psr-4": {
+            "Lenovo\\LibraryManagementSystem\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Zar Ni Maung",
+            "email": "zm759464@gmail.com"
+        }
+    ],
+    "require": {}
+}

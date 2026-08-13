@@ -1,0 +1,750 @@
+/* =========================================================
+   USER CREATE PAGE
+   Distributed Library Management System
+   ========================================================= */
+
+.user-create-page {
+  min-height: calc(100vh - 40px);
+  padding: 35px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(99, 102, 241, 0.12),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(14, 165, 233, 0.1),
+      transparent 30%
+    ),
+    #f8fafc;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.user-create-header {
+  max-width: 1050px;
+  margin: 0 auto 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.user-create-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.user-create-title-icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+
+  color: white;
+  font-size: 25px;
+
+  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.25);
+}
+
+.user-create-title h1 {
+  margin: 0;
+  color: #0f172a;
+
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.user-create-title p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* =========================================================
+   BACK BUTTON
+   ========================================================= */
+
+.user-create-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 10px 15px;
+
+  border-radius: 11px;
+
+  background: white;
+  border: 1px solid #e2e8f0;
+
+  color: #475569;
+  text-decoration: none;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
+
+  transition: 0.2s ease;
+}
+
+.user-create-back:hover {
+  color: #4f46e5;
+  border-color: #c7d2fe;
+  background: #f8faff;
+
+  transform: translateX(-3px);
+}
+
+/* =========================================================
+   MAIN CARD
+   ========================================================= */
+
+.user-create-card {
+  max-width: 1050px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 300px 1fr;
+
+  background: rgba(255, 255, 255, 0.92);
+
+  border: 1px solid rgba(226, 232, 240, 0.9);
+
+  border-radius: 24px;
+
+  overflow: hidden;
+
+  box-shadow: 0 25px 70px rgba(15, 23, 42, 0.1);
+}
+
+/* =========================================================
+   LEFT PANEL
+   ========================================================= */
+
+.user-create-side {
+  position: relative;
+
+  padding: 35px 28px;
+
+  background: linear-gradient(155deg, #111827 0%, #1e1b4b 52%, #312e81 100%);
+
+  color: white;
+
+  overflow: hidden;
+}
+
+.user-create-side::before {
+  content: "";
+
+  position: absolute;
+
+  width: 190px;
+  height: 190px;
+
+  right: -80px;
+  top: -60px;
+
+  border-radius: 50%;
+
+  background: rgba(129, 140, 248, 0.18);
+}
+
+.user-create-side::after {
+  content: "";
+
+  position: absolute;
+
+  width: 150px;
+  height: 150px;
+
+  left: -80px;
+  bottom: -60px;
+
+  border-radius: 50%;
+
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.create-side-content {
+  position: relative;
+  z-index: 2;
+}
+
+.create-side-icon {
+  width: 68px;
+  height: 68px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.12);
+
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  font-size: 32px;
+
+  margin-bottom: 25px;
+
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+}
+
+.create-side-content h2 {
+  margin: 0 0 10px;
+
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.create-side-content > p {
+  margin: 0;
+
+  color: #cbd5e1;
+
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   SIDE FEATURES
+   ========================================================= */
+
+.create-features {
+  margin-top: 35px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.create-feature {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  padding: 11px;
+
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.06);
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.create-feature-icon {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: rgba(129, 140, 248, 0.18);
+
+  font-size: 15px;
+}
+
+.create-feature-text strong {
+  display: block;
+
+  color: #f8fafc;
+
+  font-size: 11px;
+}
+
+.create-feature-text span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   FORM AREA
+   ========================================================= */
+
+.user-create-form-area {
+  padding: 35px 40px;
+}
+
+.form-heading {
+  margin-bottom: 25px;
+}
+
+.form-heading h2 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.form-heading p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   FORM GRID
+   ========================================================= */
+
+.user-form-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+}
+
+/* =========================================================
+   FORM GROUP
+   ========================================================= */
+
+.user-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-form-group.full {
+  grid-column: 1 / -1;
+}
+
+.user-form-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-bottom: 8px;
+
+  color: #334155;
+
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.user-form-label-icon {
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+
+  background: #eef2ff;
+
+  font-size: 13px;
+}
+
+.required {
+  color: #ef4444;
+}
+
+/* =========================================================
+   INPUT WRAPPER
+   ========================================================= */
+
+.user-input-wrapper {
+  position: relative;
+}
+
+.user-input {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  height: 46px;
+
+  padding: 0 14px;
+
+  border: 1px solid #dbe2ea;
+
+  border-radius: 11px;
+
+  outline: none;
+
+  background: #f8fafc;
+
+  color: #0f172a;
+
+  font-size: 12px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.user-input::placeholder {
+  color: #94a3b8;
+}
+
+.user-input:hover {
+  border-color: #cbd5e1;
+  background: white;
+}
+
+.user-input:focus {
+  border-color: #6366f1;
+
+  background: white;
+
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* =========================================================
+   HELPER TEXT
+   ========================================================= */
+
+.user-helper {
+  margin-top: 6px;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   ROLE SECTION
+   ========================================================= */
+
+.role-section {
+  margin-top: 27px;
+}
+
+.role-section-title {
+  margin-bottom: 12px;
+
+  color: #334155;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.role-options {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 12px;
+}
+
+.role-option {
+  position: relative;
+}
+
+.role-option input {
+  position: absolute;
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+.role-card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 15px;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 13px;
+
+  background: white;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.role-card:hover {
+  border-color: #c7d2fe;
+
+  background: #f8faff;
+
+  transform: translateY(-2px);
+}
+
+.role-option input:checked + .role-card {
+  border-color: #6366f1;
+
+  background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.12);
+}
+
+.role-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 11px;
+
+  background: #f1f5f9;
+
+  font-size: 19px;
+}
+
+.role-option input:checked + .role-card .role-icon {
+  background: #e0e7ff;
+}
+
+.role-info strong {
+  display: block;
+
+  color: #1e293b;
+
+  font-size: 12px;
+}
+
+.role-info span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #64748b;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   FORM ACTIONS
+   ========================================================= */
+
+.user-form-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-top: 30px;
+
+  padding-top: 22px;
+
+  border-top: 1px solid #eef2f7;
+}
+
+.user-cancel-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  height: 42px;
+
+  padding: 0 17px;
+
+  border-radius: 10px;
+
+  background: white;
+
+  border: 1px solid #e2e8f0;
+
+  color: #64748b;
+
+  text-decoration: none;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  transition: 0.2s ease;
+}
+
+.user-cancel-btn:hover {
+  background: #f8fafc;
+
+  color: #334155;
+
+  border-color: #cbd5e1;
+}
+
+.user-create-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  height: 42px;
+
+  padding: 0 20px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+
+  color: white;
+
+  cursor: pointer;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  box-shadow: 0 8px 22px rgba(79, 70, 229, 0.25);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.user-create-btn:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.32);
+}
+
+.user-create-btn:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   SECURITY NOTE
+   ========================================================= */
+
+.security-note {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 18px;
+
+  padding: 10px 12px;
+
+  border-radius: 9px;
+
+  background: #f0fdf4;
+
+  border: 1px solid #dcfce7;
+
+  color: #166534;
+
+  font-size: 9px;
+}
+
+.security-note span:first-child {
+  font-size: 14px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .user-create-card {
+    grid-template-columns: 1fr;
+  }
+
+  .user-create-side {
+    padding: 28px;
+  }
+
+  .create-features {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    margin-top: 25px;
+  }
+}
+
+@media (max-width: 700px) {
+  .user-create-page {
+    padding: 20px 15px;
+  }
+
+  .user-create-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .user-create-form-area {
+    padding: 28px 22px;
+  }
+
+  .user-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-form-group.full {
+    grid-column: auto;
+  }
+
+  .role-options {
+    grid-template-columns: 1fr;
+  }
+
+  .create-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 450px) {
+  .user-create-title h1 {
+    font-size: 22px;
+  }
+
+  .user-create-title-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 21px;
+  }
+
+  .user-form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .user-cancel-btn,
+  .user-create-btn {
+    width: 100%;
+  }
+}
