@@ -34,11 +34,10 @@ class AuthController
                 new AuthService();
 
 
-            $user =
-                $service->login(
-                    $_POST["email"],
-                    $_POST["password"]
-                );
+            $user = $service->login(
+    trim($_POST["email"] ?? ""),
+    $_POST["password"] ?? ""
+);
 
 
             if ($user) {

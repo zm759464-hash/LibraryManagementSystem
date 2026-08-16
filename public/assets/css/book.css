@@ -1116,3 +1116,2466 @@
   background: #4f46e5;
   color: white;
 }
+/* =========================================================
+   USER AVAILABLE BOOKS PAGE
+   ========================================================= */
+
+.user-books-page {
+    min-height: 100vh;
+    padding: 40px 30px 70px;
+
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(99, 102, 241, 0.16),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 90% 15%,
+            rgba(14, 165, 233, 0.12),
+            transparent 28%
+        ),
+        linear-gradient(
+            135deg,
+            #f8faff 0%,
+            #eef4ff 50%,
+            #f8fafc 100%
+        );
+
+    min-height: calc(100vh - 70px);
+
+    color: #0f172a;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+
+.user-books-container {
+    width: min(1450px, 100%);
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.user-books-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: flex-end;
+
+    gap: 30px;
+
+    margin-bottom: 28px;
+}
+
+
+.user-books-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 7px 13px;
+
+    margin-bottom: 10px;
+
+    border-radius: 999px;
+
+    background: #eef2ff;
+
+    color: #4f46e5;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+}
+
+
+.user-books-heading h1 {
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: clamp(
+        32px,
+        4vw,
+        46px
+    );
+
+    font-weight: 850;
+
+    letter-spacing: -1.5px;
+}
+
+
+.user-books-heading p {
+    margin: 8px 0 0;
+
+    color: #64748b;
+
+    font-size: 15px;
+}
+
+
+.user-back-btn {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 44px;
+
+    padding: 0 17px;
+
+    border: 1px solid #dbe3f0;
+
+    border-radius: 11px;
+
+    background: white;
+
+    color: #334155;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 750;
+
+    box-shadow:
+        0 5px 18px rgba(
+            15,
+            23,
+            42,
+            0.06
+        );
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.user-back-btn:hover {
+    transform: translateY(-2px);
+
+    background: #f8fafc;
+
+    box-shadow:
+        0 10px 25px rgba(
+            15,
+            23,
+            42,
+            0.10
+        );
+}
+
+
+/* =========================================================
+   CATEGORY FILTER
+   ========================================================= */
+
+.user-category-bar {
+    display: flex;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+
+    margin-bottom: 22px;
+}
+
+
+.category-filter-btn {
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 10px 16px;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 999px;
+
+    background: white;
+
+    color: #475569;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    box-shadow:
+        0 4px 15px rgba(
+            15,
+            23,
+            42,
+            0.04
+        );
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+
+.category-filter-btn:hover {
+    transform: translateY(-2px);
+
+    border-color: #c7d2fe;
+
+    color: #4f46e5;
+}
+
+
+.category-filter-btn.active {
+    border-color: #4f46e5;
+
+    background: #4f46e5;
+
+    color: white;
+
+    box-shadow:
+        0 8px 20px rgba(
+            79,
+            70,
+            229,
+            0.22
+        );
+}
+
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+
+.books-summary {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+    margin-bottom: 22px;
+
+    padding: 17px 20px;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 16px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.78
+    );
+
+    box-shadow:
+        0 8px 25px rgba(
+            15,
+            23,
+            42,
+            0.05
+        );
+}
+
+
+.books-summary strong {
+    display: block;
+
+    color: #0f172a;
+
+    font-size: 15px;
+}
+
+
+.books-summary span {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+.distributed-status {
+    padding: 8px 13px;
+
+    border-radius: 999px;
+
+    background: #ecfdf5;
+
+    color: #047857;
+
+    font-size: 12px;
+
+    font-weight: 750;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   BOOK GRID
+   ========================================================= */
+
+.user-books-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        );
+
+    gap: 24px;
+}
+
+
+/* =========================================================
+   BOOK CARD
+   ========================================================= */
+
+.user-book-card {
+    overflow: hidden;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 20px;
+
+    background: white;
+
+    box-shadow:
+        0 10px 35px rgba(
+            15,
+            23,
+            42,
+            0.07
+        );
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+
+.user-book-card:hover {
+    transform: translateY(-6px);
+
+    border-color: #c7d2fe;
+
+    box-shadow:
+        0 18px 45px rgba(
+            15,
+            23,
+            42,
+            0.12
+        );
+}
+
+
+/* =========================================================
+   BOOK COVER
+   ========================================================= */
+
+.user-book-cover {
+    position: relative;
+
+    height: 175px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    color: white;
+
+    overflow: hidden;
+}
+
+
+.user-book-cover::before {
+    content: "";
+
+    position: absolute;
+
+    width: 180px;
+    height: 180px;
+
+    right: -60px;
+    top: -70px;
+
+    border-radius: 50%;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.12
+    );
+}
+
+
+.user-book-cover::after {
+    content: "";
+
+    position: absolute;
+
+    width: 120px;
+    height: 120px;
+
+    left: -45px;
+    bottom: -55px;
+
+    border-radius: 50%;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.10
+    );
+}
+
+
+.user-book-cover.technology {
+    background:
+        linear-gradient(
+            135deg,
+            #4338ca,
+            #2563eb
+        );
+}
+
+
+.user-book-cover.science {
+    background:
+        linear-gradient(
+            135deg,
+            #0891b2,
+            #2563eb
+        );
+}
+
+
+.user-book-cover.fiction {
+    background:
+        linear-gradient(
+            135deg,
+            #7c3aed,
+            #c026d3
+        );
+}
+
+
+.user-book-cover.unknown {
+    background:
+        linear-gradient(
+            135deg,
+            #475569,
+            #64748b
+        );
+}
+
+
+.book-cover-icon {
+    position: relative;
+
+    z-index: 2;
+
+    width: 70px;
+    height: 70px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 18px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.17
+    );
+
+    border: 1px solid rgba(
+        255,
+        255,
+        255,
+        0.20
+    );
+
+    font-size: 35px;
+
+    backdrop-filter: blur(10px);
+}
+
+
+.user-book-cover > span {
+    position: relative;
+
+    z-index: 2;
+
+    font-size: 12px;
+
+    font-weight: 750;
+
+    opacity: 0.95;
+}
+
+
+/* =========================================================
+   BOOK CONTENT
+   ========================================================= */
+
+.user-book-content {
+    padding: 20px;
+}
+
+
+.user-book-title-row {
+    min-height: 48px;
+}
+
+
+.user-book-title-row h2 {
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: 18px;
+
+    line-height: 1.35;
+
+    font-weight: 800;
+
+    display: -webkit-box;
+
+    -webkit-line-clamp: 2;
+
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+}
+
+
+.user-book-author {
+    margin: 7px 0 14px;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+.user-book-author strong {
+    color: #334155;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   BOOK ID
+   ========================================================= */
+
+.user-book-id {
+    overflow: hidden;
+
+    padding: 8px 10px;
+
+    border-radius: 9px;
+
+    background: #f8fafc;
+
+    color: #94a3b8;
+
+    font-family: monospace;
+
+    font-size: 10px;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+.user-book-id span {
+    color: #475569;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   META
+   ========================================================= */
+
+.user-book-meta {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 12px;
+
+    margin-top: 15px;
+}
+
+
+.book-meta-item {
+    min-width: 0;
+}
+
+
+.meta-label {
+    margin-bottom: 6px;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.06em;
+}
+
+
+.book-category-tag {
+    display: inline-flex;
+
+    max-width: 100%;
+
+    overflow: hidden;
+
+    padding: 6px 9px;
+
+    border-radius: 8px;
+
+    font-size: 10px;
+
+    font-weight: 750;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+.book-category-tag.technology {
+    background: #eef2ff;
+
+    color: #4338ca;
+}
+
+
+.book-category-tag.science {
+    background: #ecfeff;
+
+    color: #0e7490;
+}
+
+
+.book-category-tag.fiction {
+    background: #faf5ff;
+
+    color: #7e22ce;
+}
+
+
+/* =========================================================
+   STOCK
+   ========================================================= */
+
+.stock {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 6px 9px;
+
+    border-radius: 8px;
+
+    font-size: 10px;
+
+    font-weight: 750;
+}
+
+
+.stock-dot {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+}
+
+
+.available-stock {
+    background: #ecfdf5;
+
+    color: #047857;
+}
+
+
+.available-stock .stock-dot {
+    background: #10b981;
+}
+
+
+.unavailable-stock {
+    background: #fef2f2;
+
+    color: #b91c1c;
+}
+
+
+.unavailable-stock .stock-dot {
+    background: #ef4444;
+}
+
+
+/* =========================================================
+   NODE
+   ========================================================= */
+
+.user-book-node {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 16px;
+
+    padding-top: 13px;
+
+    border-top: 1px solid #f1f5f9;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+
+.user-book-node strong {
+    color: #475569;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.user-book-actions {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 9px;
+
+    margin-top: 17px;
+}
+
+
+.book-details-btn,
+.book-borrow-btn {
+    min-height: 39px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 10px;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    font-weight: 750;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.book-details-btn {
+    border: 1px solid #bfdbfe;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+}
+
+
+.book-details-btn:hover {
+    transform: translateY(-2px);
+
+    background: #dbeafe;
+}
+
+
+.book-borrow-btn {
+    border: 0;
+
+    background:
+        linear-gradient(
+            135deg,
+            #10b981,
+            #059669
+        );
+
+    color: white;
+
+    box-shadow:
+        0 6px 16px rgba(
+            16,
+            185,
+            129,
+            0.18
+        );
+}
+
+
+.book-borrow-btn:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 22px rgba(
+            16,
+            185,
+            129,
+            0.25
+        );
+}
+
+
+.book-borrow-btn.disabled {
+    cursor: not-allowed;
+
+    background: #e2e8f0;
+
+    color: #94a3b8;
+
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   EMPTY
+   ========================================================= */
+
+.user-books-empty {
+    padding: 80px 25px;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 22px;
+
+    background: white;
+
+    text-align: center;
+
+    box-shadow:
+        0 10px 35px rgba(
+            15,
+            23,
+            42,
+            0.06
+        );
+}
+
+
+.empty-book-icon {
+    font-size: 55px;
+}
+
+
+.user-books-empty h2 {
+    margin: 15px 0 7px;
+
+    color: #0f172a;
+}
+
+
+.user-books-empty p {
+    margin: 0 0 22px;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1150px) {
+
+    .user-books-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+}
+
+
+@media (max-width: 750px) {
+
+    .user-books-page {
+        padding: 25px 15px 50px;
+    }
+
+
+    .user-books-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .user-back-btn {
+        width: 100%;
+    }
+
+
+    .user-books-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .books-summary {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .distributed-status {
+        width: 100%;
+
+        text-align: center;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .user-book-meta {
+        grid-template-columns: 1fr;
+    }
+
+
+    .user-book-actions {
+        grid-template-columns: 1fr;
+    }
+
+
+    .user-books-heading h1 {
+        font-size: 32px;
+    }
+
+}
+
+/* =========================================================
+   BOOK DETAILS PAGE
+   ========================================================= */
+
+.book-details-page {
+    min-height: 100vh;
+
+    padding: 40px 30px 70px;
+
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(99, 102, 241, 0.13),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 90% 20%,
+            rgba(14, 165, 233, 0.11),
+            transparent 28%
+        ),
+        linear-gradient(
+            135deg,
+            #f8faff 0%,
+            #eef4ff 50%,
+            #f8fafc 100%
+        );
+
+    color: #0f172a;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+
+.book-details-container {
+    width: min(1180px, 100%);
+
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.details-topbar {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 24px;
+}
+
+
+.details-back-btn {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 43px;
+
+    padding: 0 16px;
+
+    border: 1px solid #dbe3f0;
+
+    border-radius: 11px;
+
+    background: white;
+
+    color: #334155;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 750;
+
+    box-shadow:
+        0 5px 18px rgba(
+            15,
+            23,
+            42,
+            0.06
+        );
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.details-back-btn:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 25px rgba(
+            15,
+            23,
+            42,
+            0.10
+        );
+}
+
+
+.details-breadcrumb {
+    color: #94a3b8;
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+
+.details-breadcrumb span {
+    margin: 0 7px;
+
+    color: #cbd5e1;
+}
+
+
+/* =========================================================
+   MAIN CARD
+   ========================================================= */
+
+.book-details-card {
+    display: grid;
+
+    grid-template-columns:
+        390px
+        minmax(0, 1fr);
+
+    overflow: hidden;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 25px;
+
+    background: white;
+
+    box-shadow:
+        0 20px 60px rgba(
+            15,
+            23,
+            42,
+            0.09
+        );
+}
+
+
+/* =========================================================
+   COVER
+   ========================================================= */
+
+.details-book-cover {
+    position: relative;
+
+    min-height: 610px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+    gap: 16px;
+
+    overflow: hidden;
+
+    color: white;
+}
+
+
+.details-book-cover.technology {
+    background:
+        linear-gradient(
+            145deg,
+            #4338ca,
+            #2563eb
+        );
+}
+
+
+.details-book-cover.science {
+    background:
+        linear-gradient(
+            145deg,
+            #0891b2,
+            #2563eb
+        );
+}
+
+
+.details-book-cover.fiction {
+    background:
+        linear-gradient(
+            145deg,
+            #7c3aed,
+            #c026d3
+        );
+}
+
+
+.details-book-cover.unknown {
+    background:
+        linear-gradient(
+            145deg,
+            #475569,
+            #64748b
+        );
+}
+
+
+.details-cover-decoration {
+    position: absolute;
+
+    border-radius: 50%;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.10
+    );
+}
+
+
+.decoration-one {
+    width: 320px;
+    height: 320px;
+
+    top: -140px;
+    right: -130px;
+}
+
+
+.decoration-two {
+    width: 250px;
+    height: 250px;
+
+    left: -130px;
+    bottom: -120px;
+}
+
+
+.details-cover-icon {
+    position: relative;
+
+    z-index: 2;
+
+    width: 155px;
+    height: 190px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 18px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.16
+    );
+
+    border: 1px solid rgba(
+        255,
+        255,
+        255,
+        0.22
+    );
+
+    font-size: 76px;
+
+    box-shadow:
+        0 25px 50px rgba(
+            0,
+            0,
+            0,
+            0.18
+        );
+
+    backdrop-filter: blur(12px);
+}
+
+
+.details-cover-category {
+    position: relative;
+
+    z-index: 2;
+
+    padding: 7px 13px;
+
+    border: 1px solid rgba(
+        255,
+        255,
+        255,
+        0.20
+    );
+
+    border-radius: 999px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.14
+    );
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    backdrop-filter: blur(10px);
+}
+
+
+.details-cover-id {
+    position: relative;
+
+    z-index: 2;
+
+    color: rgba(
+        255,
+        255,
+        255,
+        0.72
+    );
+
+    font-family: monospace;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   CONTENT
+   ========================================================= */
+
+.details-book-content {
+    padding: 48px 48px 40px;
+}
+
+
+.details-category {
+    display: inline-flex;
+
+    padding: 7px 12px;
+
+    margin-bottom: 15px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+
+.details-category.technology {
+    background: #eef2ff;
+
+    color: #4338ca;
+}
+
+
+.details-category.science {
+    background: #ecfeff;
+
+    color: #0e7490;
+}
+
+
+.details-category.fiction {
+    background: #faf5ff;
+
+    color: #7e22ce;
+}
+
+
+.details-book-title {
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: clamp(
+        34px,
+        4vw,
+        48px
+    );
+
+    line-height: 1.12;
+
+    font-weight: 850;
+
+    letter-spacing: -1.8px;
+}
+
+
+.details-author {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 12px;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+
+.details-author strong {
+    color: #334155;
+
+    font-weight: 750;
+}
+
+
+.author-label {
+    color: #94a3b8;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.details-description {
+    margin-top: 32px;
+
+    padding-bottom: 25px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+
+.details-description h2 {
+    margin: 0 0 9px;
+
+    color: #1e293b;
+
+    font-size: 16px;
+
+    font-weight: 800;
+}
+
+
+.details-description p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+    line-height: 1.75;
+}
+
+
+/* =========================================================
+   INFORMATION GRID
+   ========================================================= */
+
+.details-info-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 12px;
+
+    margin-top: 25px;
+}
+
+
+.details-info-box {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-width: 0;
+
+    padding: 14px;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 13px;
+
+    background: #f8fafc;
+}
+
+
+.details-info-icon {
+    width: 39px;
+    height: 39px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 10px;
+
+    font-size: 16px;
+
+    font-weight: 800;
+}
+
+
+.available-icon {
+    background: #dcfce7;
+
+    color: #16a34a;
+}
+
+
+.node-icon {
+    background: #dbeafe;
+
+    color: #2563eb;
+}
+
+
+.id-icon {
+    background: #ede9fe;
+
+    color: #7c3aed;
+}
+
+
+.status-icon {
+    background: #fef3c7;
+
+    color: #d97706;
+}
+
+
+.details-info-label {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: #94a3b8;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+}
+
+
+.details-info-box strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: #334155;
+
+    font-size: 12px;
+
+    font-weight: 750;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+.details-global-id {
+    font-family: monospace;
+}
+
+
+.available-text {
+    color: #059669 !important;
+}
+
+
+.unavailable-text {
+    color: #dc2626 !important;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.details-actions {
+    display: grid;
+
+    grid-template-columns:
+        1.2fr 1fr;
+
+    gap: 11px;
+
+    margin-top: 28px;
+}
+
+
+.details-borrow-btn,
+.details-hold-btn {
+    min-height: 50px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.details-borrow-btn {
+    border: 0;
+
+    background:
+        linear-gradient(
+            135deg,
+            #10b981,
+            #059669
+        );
+
+    color: white;
+
+    box-shadow:
+        0 9px 25px rgba(
+            16,
+            185,
+            129,
+            0.20
+        );
+}
+
+
+.details-borrow-btn:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 14px 30px rgba(
+            16,
+            185,
+            129,
+            0.28
+        );
+}
+
+
+.details-hold-btn {
+    border: 1px solid #c4b5fd;
+
+    background: #f5f3ff;
+
+    color: #6d28d9;
+}
+
+
+.details-hold-btn:hover {
+    transform: translateY(-2px);
+
+    background: #ede9fe;
+}
+
+
+.details-borrow-btn.disabled {
+    cursor: not-allowed;
+
+    background: #e2e8f0;
+
+    color: #94a3b8;
+
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   NOTE
+   ========================================================= */
+
+.details-note {
+    margin-top: 17px;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+
+    line-height: 1.6;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   DISTRIBUTED SYSTEM CARD
+   ========================================================= */
+
+.details-system-card {
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    margin-top: 20px;
+
+    padding: 20px 22px;
+
+    border: 1px solid #dbeafe;
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eff6ff,
+            #f8fafc
+        );
+}
+
+
+.system-card-icon {
+    width: 45px;
+    height: 45px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 12px;
+
+    background: white;
+
+    font-size: 21px;
+
+    box-shadow:
+        0 5px 15px rgba(
+            15,
+            23,
+            42,
+            0.06
+        );
+}
+
+
+.system-card-content {
+    flex: 1;
+}
+
+
+.system-card-content h3 {
+    margin: 0;
+
+    color: #1e293b;
+
+    font-size: 14px;
+
+    font-weight: 800;
+}
+
+
+.system-card-content p {
+    margin: 4px 0 0;
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+.system-card-content strong {
+    color: #475569;
+}
+
+
+.system-status {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 7px 11px;
+
+    border-radius: 999px;
+
+    background: #ecfdf5;
+
+    color: #047857;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
+
+.system-status span {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background: #10b981;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .book-details-card {
+        grid-template-columns: 1fr;
+    }
+
+
+    .details-book-cover {
+        min-height: 380px;
+    }
+
+
+    .details-cover-icon {
+        width: 120px;
+        height: 150px;
+
+        font-size: 60px;
+    }
+
+
+    .details-book-content {
+        padding: 35px 30px;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .book-details-page {
+        padding: 25px 15px 50px;
+    }
+
+
+    .details-topbar {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .details-breadcrumb {
+        display: none;
+    }
+
+
+    .details-book-content {
+        padding: 28px 20px;
+    }
+
+
+    .details-book-title {
+        font-size: 34px;
+    }
+
+
+    .details-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .details-actions {
+        grid-template-columns: 1fr;
+    }
+
+
+    .details-system-card {
+        align-items: flex-start;
+
+        flex-wrap: wrap;
+    }
+
+
+    .system-status {
+        width: 100%;
+
+        justify-content: center;
+    }
+
+}
+
+
+/* =========================================================
+   HOLD RESULT PAGE
+========================================================= */
+
+.hold-result-page {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    background: #f7f9fc;
+}
+
+
+.hold-result-card {
+    width: min(560px, 100%);
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 42px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+    border: 1px solid #e8edf5;
+}
+
+
+.hold-result-icon {
+    width: 78px;
+    height: 78px;
+    margin: 0 auto 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-size: 34px;
+    font-weight: 800;
+}
+
+
+.hold-success .hold-result-icon {
+    background: #e8f8ef;
+    color: #16834b;
+}
+
+
+.hold-error .hold-result-icon {
+    background: #fff4e5;
+    color: #d97706;
+}
+
+
+.hold-result-badge {
+    display: inline-block;
+
+    padding: 7px 14px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    background: #f1f5f9;
+    color: #64748b;
+
+    margin-bottom: 12px;
+}
+
+
+.hold-result-card h1 {
+    margin: 0 0 12px;
+
+    font-size: 30px;
+    line-height: 1.2;
+
+    color: #172033;
+}
+
+
+.hold-result-card p {
+    margin: 0 auto 25px;
+
+    max-width: 450px;
+
+    color: #64748b;
+
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+
+.hold-result-info {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 16px;
+
+    margin: 20px 0 28px;
+
+    text-align: left;
+
+    border-radius: 14px;
+
+    background: #f8fafc;
+    border: 1px solid #e5eaf1;
+}
+
+
+.hold-result-info > span {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: #eef2ff;
+
+    font-size: 20px;
+}
+
+
+.hold-result-info strong {
+    display: block;
+
+    color: #1e293b;
+
+    font-size: 14px;
+
+    margin-bottom: 3px;
+}
+
+
+.hold-result-info small {
+    color: #64748b;
+}
+
+
+.hold-result-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+
+.hold-primary-btn,
+.hold-secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 46px;
+
+    padding: 0 20px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    transition: 0.2s ease;
+}
+
+
+.hold-primary-btn {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+
+.hold-primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+
+.hold-secondary-btn {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+
+.hold-secondary-btn:hover {
+    background: #e2e8f0;
+}
+
+
+/* =========================================================
+   HOLD DISABLED ON AVAILABLE BOOK
+========================================================= */
+
+.details-hold-disabled {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    min-height: 52px;
+
+    padding: 9px 16px;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    color: #64748b;
+}
+
+
+.hold-disabled-icon {
+    font-size: 20px;
+    opacity: 0.65;
+}
+
+
+.details-hold-disabled strong {
+    display: block;
+
+    font-size: 13px;
+
+    color: #475569;
+
+    margin-bottom: 2px;
+}
+
+
+.details-hold-disabled small {
+    display: block;
+
+    font-size: 11px;
+
+    color: #94a3b8;
+}
+
+
+/* =========================================================
+   MY HOLDS PAGE
+========================================================= */
+
+.my-holds-page {
+    min-height: 70vh;
+
+    padding: 40px 20px;
+
+    background: #f7f9fc;
+}
+
+
+.my-holds-container {
+    max-width: 1150px;
+
+    margin: 0 auto;
+}
+
+
+.my-holds-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 28px;
+}
+
+
+.hold-page-badge {
+    display: inline-block;
+
+    padding: 7px 13px;
+
+    margin-bottom: 10px;
+
+    border-radius: 999px;
+
+    background: #eef2ff;
+
+    color: #4f46e5;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+}
+
+
+.my-holds-header h1 {
+    margin: 0 0 7px;
+
+    font-size: 32px;
+
+    color: #172033;
+}
+
+
+.my-holds-header p {
+    margin: 0;
+
+    color: #64748b;
+}
+
+
+.my-holds-table-card {
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid #e5eaf1;
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 12px 35px
+        rgba(15, 23, 42, 0.07);
+}
+
+
+.my-holds-table-wrapper {
+    overflow-x: auto;
+}
+
+
+.my-holds-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 760px;
+}
+
+
+.my-holds-table th {
+    padding: 16px 18px;
+
+    text-align: left;
+
+    background: #f8fafc;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.5px;
+}
+
+
+.my-holds-table td {
+    padding: 18px;
+
+    border-top: 1px solid #eef2f7;
+
+    color: #475569;
+
+    font-size: 14px;
+}
+
+
+.hold-book-id {
+    display: inline-block;
+
+    padding: 6px 9px;
+
+    border-radius: 8px;
+
+    background: #f1f5f9;
+
+    color: #475569;
+
+    font-size: 11px;
+
+    font-family: monospace;
+}
+
+
+.hold-book-name {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+.hold-book-name > span {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #eef2ff;
+}
+
+
+.hold-book-name strong {
+    color: #1e293b;
+}
+
+
+.hold-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 7px 11px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+
+.hold-status-pending {
+    background: #fff7ed;
+
+    color: #c2410c;
+}
+
+
+.hold-status-approved {
+    background: #ecfdf5;
+
+    color: #047857;
+}
+
+
+.hold-status-rejected {
+    background: #fef2f2;
+
+    color: #b91c1c;
+}
+
+
+.my-holds-empty {
+    padding: 60px 20px !important;
+
+    text-align: center;
+}
+
+
+.my-holds-empty > div {
+    font-size: 42px;
+
+    margin-bottom: 12px;
+}
+
+
+.my-holds-empty strong {
+    display: block;
+
+    font-size: 18px;
+
+    color: #334155;
+
+    margin-bottom: 5px;
+}
+
+
+.my-holds-empty span {
+    display: block;
+
+    color: #94a3b8;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .hold-result-card {
+        padding: 30px 22px;
+    }
+
+
+    .hold-result-card h1 {
+        font-size: 25px;
+    }
+
+
+    .my-holds-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .details-hold-disabled {
+        width: 100%;
+
+        box-sizing: border-box;
+    }
+}

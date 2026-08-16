@@ -1,52 +1,76 @@
 <?php
 
-
 require_once
-    "../app/Interfaces/BookRepositoryInterface.php";
-
+    __DIR__ . "/../Interfaces/BookRepositoryInterface.php";
 
 
 class BookService
 {
-
+    /*
+        ========================================================
+        Properties
+        ========================================================
+    */
 
     private BookRepositoryInterface $repository;
 
 
-
     /*
-        Dependency Injection
+        ========================================================
+        Constructor
+        ========================================================
     */
+
     public function __construct(
         BookRepositoryInterface $repository
     ) {
 
-        $this->repository = $repository;
+        $this->repository =
+            $repository;
     }
 
 
-
-
-
     /*
-        Get All Books
+        ========================================================
+        GET ALL BOOKS
+        ========================================================
+
+        Responsibility:
+
+            Service
+                ↓
+            Repository
+                ↓
+            Database
     */
+
     public function getAllBooks()
     {
-
-        return
+        $result =
             $this->repository
             ->getAllBooks();
+
+
+        /*
+            Safety fallback
+        */
+
+        if ($result === false) {
+
+            return [];
+        }
+
+
+        return $result;
     }
 
 
-
-
-
-
     /*
-        Add New Distributed Book
+        ========================================================
+        ADD BOOK
+        ========================================================
     */
+
     public function addBook(
         $title,
         $author,
@@ -54,42 +78,97 @@ class BookService
         $availableCopies
     ) {
 
+        /*
+            Clean input
+        */
+
+        $title =
+            trim(
+                (string)$title
+            );
+
+
+        $author =
+            trim(
+                (string)$author
+            );
+
+
+        $category =
+            trim(
+                (string)$category
+            );
+
+
+        $availableCopies =
+            (int)$availableCopies;
+
+
+        /*
+            Validate required fields
+        */
+
+        if (
+            $title === "" ||
+            $author === "" ||
+            $category === ""
+        ) {
+
+            return false;
+        }
+
+
+        /*
+            Available copies
+            cannot be negative.
+        */
+
+        if (
+            $availableCopies < 0
+        ) {
+
+            $availableCopies = 0;
+        }
+
+
+        /*
+            Prepare repository data
+        */
 
         $data = [
 
             "title" =>
-            $title,
-
+                $title,
 
             "author" =>
-            $author,
-
+                $author,
 
             "category" =>
-            $category,
-
+                $category,
 
             "available_copies" =>
-            $availableCopies
-
+                $availableCopies
         ];
 
 
+        /*
+            Create book
+        */
 
         return
             $this->repository
-            ->create($data);
+            ->create(
+                $data
+            );
     }
 
 
-
-
-
-
-
     /*
-        Update Book
+        ========================================================
+        UPDATE BOOK
+        ========================================================
     */
+
     public function updateBook(
         $id,
         $title,
@@ -98,74 +177,191 @@ class BookService
         $copies
     ) {
 
+        /*
+            Clean input
+        */
+
+        $id =
+            trim(
+                (string)$id
+            );
+
+
+        $title =
+            trim(
+                (string)$title
+            );
+
+
+        $author =
+            trim(
+                (string)$author
+            );
+
+
+        $category =
+            trim(
+                (string)$category
+            );
+
+
+        $copies =
+            (int)$copies;
+
+
+        /*
+            Validate
+        */
+
+        if (
+            $id === "" ||
+            $title === "" ||
+            $author === "" ||
+            $category === ""
+        ) {
+
+            return false;
+        }
+
+
+        /*
+            Prevent negative stock
+        */
+
+        if (
+            $copies < 0
+        ) {
+
+            $copies = 0;
+        }
+
+
+        /*
+            Prepare update data
+        */
 
         $data = [
 
             "title" =>
-            $title,
-
+                $title,
 
             "author" =>
-            $author,
-
+                $author,
 
             "category" =>
-            $category,
-
+                $category,
 
             "available_copies" =>
-            $copies
-
+                $copies
         ];
 
 
+        /*
+            Update repository
+        */
 
         return
             $this->repository
             ->update(
-
                 $id,
-
                 $data
-
             );
     }
 
+
     /*
-        Delete Book
+        ========================================================
+        DELETE BOOK
+        ========================================================
     */
+
     public function deleteBook(
         $id
     ) {
 
+        $id =
+            trim(
+                (string)$id
+            );
+
+
+        if (
+            $id === ""
+        ) {
+
+            return false;
+        }
+
 
         return
             $this->repository
-            ->delete($id);
+            ->delete(
+                $id
+            );
     }
 
 
-
-
-
-
-
     /*
-        Find Single Book
+        ========================================================
+        FIND BOOK
+        ========================================================
     */
+
     public function findBook(
         $id
     ) {
 
+        $id =
+            trim(
+                (string)$id
+            );
+
+
+        if (
+            $id === ""
+        ) {
+
+            return null;
+        }
+
 
         return
             $this->repository
-            ->findById($id);
+            ->findById(
+                $id
+            );
     }
 
 
-    public function borrowBook($globalBookId)
-    {
+    /*
+        ========================================================
+        BORROW BOOK
+        ========================================================
+
+        This method is kept for compatibility
+        with existing BookController code.
+
+        Distributed stock operation is handled
+        by BookRepository.
+    */
+
+    public function borrowBook(
+        $globalBookId
+    ) {
+
+        $globalBookId =
+            trim(
+                (string)$globalBookId
+            );
+
+
+        if (
+            $globalBookId === ""
+        ) {
+
+            return false;
+        }
+
 
         return
             $this->repository

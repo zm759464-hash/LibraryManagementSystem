@@ -1,0 +1,112 @@
+.borrow-success-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: #f5f7fb;
+}
+
+.borrow-success-card {
+    width: 100%;
+    max-width: 520px;
+    padding: 38px;
+    background: #ffffff;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+}
+
+.borrow-success-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.borrow-success-card h1 {
+    margin: 0;
+    font-size: 28px;
+    color: #1f2937;
+}
+
+.borrow-success-message {
+    margin: 10px 0 28px;
+    color: #6b7280;
+}
+
+.borrow-details {
+    margin-bottom: 20px;
+    padding: 8px 20px;
+    background: #f8fafc;
+    border-radius: 14px;
+    text-align: left;
+}
+
+.borrow-detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.borrow-detail-row:last-child {
+    border-bottom: none;
+}
+
+.borrow-detail-row span {
+    color: #6b7280;
+}
+
+.borrow-detail-row strong {
+    color: #1f2937;
+    text-align: right;
+}
+
+.borrow-detail-row .due-date {
+    color: #dc2626;
+}
+
+.borrow-detail-row .book-id {
+    max-width: 250px;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+.borrow-notice {
+    margin-bottom: 25px;
+    padding: 13px 15px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 14px;
+}
+
+.borrow-back-button {
+    display: inline-block;
+    padding: 13px 25px;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.borrow-back-button:hover {
+    background: #1d4ed8;
+}
+
+.borrow-error-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}

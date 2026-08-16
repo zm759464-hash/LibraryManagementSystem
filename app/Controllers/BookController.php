@@ -1,26 +1,84 @@
 <?php
 
-require_once "../app/Services/DistributedQueryService.php";
-require_once "../app/Services/BookService.php";
-require_once "../app/Repositories/BookRepository.php";
-require_once "../app/Middleware/AuthMiddleware.php";
-require_once "../app/Middleware/UserMiddleware.php";
-require_once "../app/Middleware/AdminMiddleware.php";
+/*
+    ============================================================
+    BOOK CONTROLLER
+    ============================================================
+*/
+
+
+/*
+    ============================================================
+    Services
+    ============================================================
+*/
+
+require_once
+    __DIR__ . "/../Services/DistributedQueryService.php";
+
+
+require_once
+    __DIR__ . "/../Services/BookService.php";
+
+
+/*
+    ============================================================
+    Repositories
+    ============================================================
+*/
+
+require_once
+    __DIR__ . "/../Repositories/BookRepository.php";
+
+
+/*
+    ============================================================
+    Middleware
+    ============================================================
+*/
+
+require_once
+    __DIR__ . "/../Middleware/AuthMiddleware.php";
+
+
+require_once
+    __DIR__ . "/../Middleware/UserMiddleware.php";
+
+
+require_once
+    __DIR__ . "/../Middleware/AdminMiddleware.php";
 
 
 class BookController
 {
 
+
+    /*
+        ========================================================
+        Get Book Service
+        ========================================================
+    */
+
     private function getBookService()
     {
+
+        /*
+            Repository
+        */
+
         $repository =
             new BookRepository();
 
-        return new BookService(
-            $repository
-        );
-    }
 
+        /*
+            Service
+        */
+
+        return
+            new BookService(
+                $repository
+            );
+    }
 
     /*
         Distributed Book List

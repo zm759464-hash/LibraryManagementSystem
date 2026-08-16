@@ -1,7 +1,8 @@
 <?php
 
 require_once
-    __DIR__ . "/../Infrastructure/Transaction/TransactionCoordinator.php";
+    __DIR__ .
+    "/../Infrastructure/Transaction/TransactionCoordinator.php";
 
 
 class BorrowTransactionService
@@ -11,27 +12,38 @@ class BorrowTransactionService
         Distributed Borrow Transaction
         ========================================================
 
-        Global Book ID -> Distributed Node
+        Global Book ID
 
-        TECH-xxxx -> library_node1
-        SCI-xxxx  -> library_node2
-        FIC-xxxx  -> library_node3
+        TECH-xxxx
+            -> library_node1
 
-        Two Phase Commit:
+        SCI-xxxx
+            -> library_node2
 
-        Phase 1
-            PREPARE
+        FIC-xxxx
+            -> library_node3
 
-        Phase 2
-            COMMIT / ABORT
+
+        Flow:
+
+            Controller
+                 ↓
+            BorrowTransactionService
+                 ↓
+            TransactionCoordinator
+                 ↓
+            Target Distributed Node
     */
 
 
     public function borrow(
         $globalBookId
     ) {
+
         /*
+            ----------------------------------------------------
             Clean input
+            ----------------------------------------------------
         */
 
         $globalBookId =
@@ -39,23 +51,42 @@ class BorrowTransactionService
 
 
         /*
-            Empty ID check
+            ----------------------------------------------------
+            Validate input
+            ----------------------------------------------------
         */
 
-        if ($globalBookId === "") {
+        if (
+            $globalBookId === ""
+        ) {
 
             return [
+
                 "status" =>
-                "ABORT",
+                    "ABORT",
 
                 "message" =>
-                "Global Book ID is required"
+                    "Global Book ID is required"
             ];
         }
 
 
         /*
-            Resolve target shard
+            ----------------------------------------------------
+            Normalize ID
+            ----------------------------------------------------
+        */
+
+        $globalBookId =
+            strtoupper(
+                $globalBookId
+            );
+
+
+        /*
+            ----------------------------------------------------
+            Resolve shard
+            ----------------------------------------------------
         */
 
         $node =
@@ -64,20 +95,19 @@ class BorrowTransactionService
             );
 
 
-        /*
-            Invalid Global ID
-        */
-
         if (!$node) {
 
             return [
+
                 "status" =>
-                "ABORT",
+                    "ABORT",
 
                 "message" =>
-                "Invalid Global Book ID: " .
-                    htmlspecialchars(
-                        $globalBookId
+                    "Invalid Global Book ID: "
+                    . htmlspecialchars(
+                        $globalBookId,
+                        ENT_QUOTES,
+                        "UTF-8"
                     )
             ];
         }
@@ -85,7 +115,7 @@ class BorrowTransactionService
 
         /*
             ====================================================
-            Create Transaction Coordinator
+            Transaction Coordinator
             ====================================================
         */
 
@@ -94,12 +124,9 @@ class BorrowTransactionService
 
 
         /*
-            ====================================================
-            Register Participant
-            ====================================================
-
-            Only the target shard participates
-            because the book belongs to one shard.
+            ----------------------------------------------------
+            Register target participant
+            ----------------------------------------------------
         */
 
         $coordinator
@@ -110,20 +137,8 @@ class BorrowTransactionService
 
         /*
             ====================================================
-            Execute Two Phase Commit
+            Execute Transaction
             ====================================================
-
-            Phase 1:
-                PREPARE
-
-            Phase 2:
-                COMMIT
-
-            If prepare fails:
-                ABORT
-
-            If all prepare operations succeed:
-                COMMIT
         */
 
         try {
@@ -136,8 +151,9 @@ class BorrowTransactionService
 
 
             /*
-                Make sure coordinator returned
-                a valid result.
+                ------------------------------------------------
+                Validate result
+                ------------------------------------------------
             */
 
             if (
@@ -145,32 +161,54 @@ class BorrowTransactionService
             ) {
 
                 return [
+
                     "status" =>
-                    "ABORT",
+                        "ABORT",
 
                     "message" =>
-                    "Invalid transaction coordinator response"
+                        "Invalid transaction coordinator response"
                 ];
             }
 
 
+            /*
+                ------------------------------------------------
+                Normalize status
+                ------------------------------------------------
+            */
+
+            if (
+                !isset(
+                    $result["status"]
+                )
+            ) {
+
+                $result["status"] =
+                    "ABORT";
+            }
+
+
             return $result;
+
+
         } catch (
             Throwable $e
         ) {
 
-            /*
-                Prevent PHP fatal error
-                from reaching the user.
-            */
+            error_log(
+                "BorrowTransactionService::borrow Error: "
+                . $e->getMessage()
+            );
+
 
             return [
+
                 "status" =>
-                "ABORT",
+                    "ABORT",
 
                 "message" =>
-                "Distributed transaction failed: " .
-                    $e->getMessage()
+                    "Distributed transaction failed: "
+                    . $e->getMessage()
             ];
         }
     }
@@ -178,31 +216,13 @@ class BorrowTransactionService
 
     /*
         ========================================================
-        Sharding Resolver
+        Resolve Distributed Node
         ========================================================
-
-        Global Book ID determines the shard.
-
-        TECH-xxxxx
-            -> Technology
-            -> library_node1
-
-        SCI-xxxxx
-            -> Science
-            -> library_node2
-
-        FIC-xxxxx
-            -> Fiction
-            -> library_node3
     */
 
     private function resolveNode(
         $globalBookId
     ) {
-        /*
-            Convert to uppercase
-            so IDs are case-insensitive.
-        */
 
         $globalBookId =
             strtoupper(
@@ -211,7 +231,9 @@ class BorrowTransactionService
 
 
         /*
-            Check exact prefix
+            ----------------------------------------------------
+            Technology
+            ----------------------------------------------------
         */
 
         if (
@@ -225,6 +247,12 @@ class BorrowTransactionService
         }
 
 
+        /*
+            ----------------------------------------------------
+            Science
+            ----------------------------------------------------
+        */
+
         if (
             str_starts_with(
                 $globalBookId,
@@ -236,6 +264,12 @@ class BorrowTransactionService
         }
 
 
+        /*
+            ----------------------------------------------------
+            Fiction
+            ----------------------------------------------------
+        */
+
         if (
             str_starts_with(
                 $globalBookId,
@@ -246,10 +280,6 @@ class BorrowTransactionService
             return "library_node3";
         }
 
-
-        /*
-            Invalid prefix
-        */
 
         return null;
     }

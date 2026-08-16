@@ -1,1 +1,34 @@
 /.continue
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# PHP dependencies
+/vendor/
+
+# Logs
+*.log
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Uploaded files
+/public/uploads/
+
+# User profile images
+/public/assets/images/profiles/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+
+# Local database dumps
+*.sql
+*.sql.gz

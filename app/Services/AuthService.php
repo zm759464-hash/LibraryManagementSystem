@@ -23,51 +23,58 @@ class AuthService
 
 
     public function login(
-        $email,
-        $password
-    ) {
+    $email,
+    $password
+) {
+    $email = trim($email);
 
-
-        $sql = "
-
+    $sql = "
         SELECT *
-
         FROM users
+        WHERE email = ?
+           OR username = ?
+        LIMIT 1
+    ";
 
-        WHERE email='$email'
-        OR username='$email'
+    $stmt = $this->db->prepare($sql);
 
-        ";
-
-
-        $result =
-            $this->db->query($sql);
-
-
-
-        if ($result->num_rows == 1) {
-
-
-            $user =
-                $result->fetch_assoc();
-
-
-
-            if (
-                password_verify(
-                    $password,
-                    $user["password"]
-                )
-            ) {
-
-                return $user;
-            }
-        }
-
-
-
+    if (!$stmt) {
         return false;
     }
+
+    $stmt->bind_param(
+        "ss",
+        $email,
+        $email
+    );
+
+    if (!$stmt->execute()) {
+        $stmt->close();
+        return false;
+    }
+
+    $result = $stmt->get_result();
+
+    if ($result->num_rows !== 1) {
+        $stmt->close();
+        return false;
+    }
+
+    $user = $result->fetch_assoc();
+
+    $stmt->close();
+
+    if (
+        password_verify(
+            $password,
+            $user["password"]
+        )
+    ) {
+        return $user;
+    }
+
+    return false;
+}
 
 
 

@@ -1,4 +1,3 @@
-
 <?php
 
 /*
@@ -8,11 +7,7 @@
 
     Responsible for one distributed database node.
 
-    Example:
-
-        library_node1
-        library_node2
-        library_node3
+    Node connection is managed by NodeManager.
 
     Transaction Flow:
 
@@ -22,6 +17,11 @@
 
         Failure -> ROLLBACK
 */
+
+
+require_once
+    __DIR__ . "/../Distributed/NodeManager.php";
+
 
 class TransactionParticipant
 {
@@ -42,27 +42,72 @@ class TransactionParticipant
 
     public function __construct($node)
     {
+        /*
+            Store database name
+        */
+
         $this->node = $node;
 
-        $this->db = new mysqli(
-            "localhost",
-            "root",
-            "",
-            $node
-        );
 
-        if ($this->db->connect_error) {
+        /*
+            NodeManager handles:
+
+                host
+                port
+                user
+                password
+                database
+        */
+
+        $nodeManager =
+            new NodeManager();
+
+
+        /*
+            Find node configuration
+        */
+
+        $nodeConfig = null;
+
+
+        foreach (
+            $nodeManager->getAllNodes()
+            as $config
+        ) {
+
+            if (
+                isset($config["database"]) &&
+                $config["database"] === $node
+            ) {
+
+                $nodeConfig = $config;
+
+                break;
+            }
+        }
+
+
+        /*
+            Unknown node
+        */
+
+        if (!$nodeConfig) {
 
             throw new Exception(
-                "Cannot connect to node: " . $node
+                "Unknown transaction node: "
+                . $node
             );
         }
 
+
         /*
-            Make sure transactions use InnoDB behavior.
+            Connect through NodeManager
         */
 
-        $this->db->set_charset("utf8mb4");
+        $this->db =
+            $nodeManager->connect(
+                $nodeConfig
+            );
     }
 
 
@@ -78,7 +123,6 @@ class TransactionParticipant
         2. available_copies > 0
         3. Start transaction
         4. Lock target row
-
     */
 
     public function prepare($bookId)
@@ -95,7 +139,8 @@ class TransactionParticipant
             /*
                 Lock the book row.
 
-                FOR UPDATE provides pessimistic row locking.
+                FOR UPDATE provides
+                pessimistic row locking.
             */
 
             $sql = "
@@ -107,11 +152,16 @@ class TransactionParticipant
                 FOR UPDATE
             ";
 
-            $stmt = $this->db->prepare($sql);
+
+            $stmt =
+                $this->db->prepare($sql);
+
 
             if (!$stmt) {
+
                 throw new Exception(
-                    "Prepare SQL failed"
+                    "Prepare SQL failed: "
+                    . $this->db->error
                 );
             }
 
@@ -121,7 +171,14 @@ class TransactionParticipant
                 $bookId
             );
 
-            $stmt->execute();
+
+            if (!$stmt->execute()) {
+
+                throw new Exception(
+                    "Prepare SQL execution failed: "
+                    . $stmt->error
+                );
+            }
 
 
             $result =
@@ -132,7 +189,9 @@ class TransactionParticipant
                 Book does not exist
             */
 
-            if ($result->num_rows === 0) {
+            if (
+                $result->num_rows === 0
+            ) {
 
                 $stmt->close();
 
@@ -169,8 +228,9 @@ class TransactionParticipant
 
             $this->prepared = true;
 
+
             return true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
 
             $this->rollback();
 
@@ -187,12 +247,14 @@ class TransactionParticipant
 
         Decrease available_copies by 1.
 
-        The row was already locked during PREPARE.
+        The row was already locked
+        during PREPARE.
     */
 
     public function commit($bookId)
     {
         if (!$this->prepared) {
+
             return false;
         }
 
@@ -213,6 +275,7 @@ class TransactionParticipant
 
 
             if (!$stmt) {
+
                 return false;
             }
 
@@ -223,14 +286,22 @@ class TransactionParticipant
             );
 
 
-            $stmt->execute();
+            if (!$stmt->execute()) {
+
+                $stmt->close();
+
+                return false;
+            }
 
 
             /*
-                Exactly one row should be updated.
+                Exactly one row
+                should be updated.
             */
 
-            if ($stmt->affected_rows !== 1) {
+            if (
+                $stmt->affected_rows !== 1
+            ) {
 
                 $stmt->close();
 
@@ -243,8 +314,9 @@ class TransactionParticipant
 
             $this->updated = true;
 
+
             return true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
 
             return false;
         }
@@ -278,16 +350,18 @@ class TransactionParticipant
 
 
             if (!$result) {
+
                 return false;
             }
 
 
             $this->prepared = false;
+
             $this->updated = false;
 
 
             return true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
 
             return false;
         }
@@ -311,14 +385,16 @@ class TransactionParticipant
 
                 $this->db->rollback();
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
 
             /*
                 Ignore rollback exception.
             */
         }
 
+
         $this->prepared = false;
+
         $this->updated = false;
     }
 

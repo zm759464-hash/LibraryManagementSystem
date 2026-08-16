@@ -13,17 +13,12 @@ require_once
     __DIR__ . "/../Middleware/UserMiddleware.php";
 
 
-
-
 class BorrowController
 {
     /*
         ========================================================
         User Borrow Book
         ========================================================
-
-        Distributed Transaction
-        Two Phase Commit based flow.
     */
 
     public function borrow($id)
@@ -34,12 +29,12 @@ class BorrowController
 
 
         /*
+            ----------------------------------------------------
             Check logged-in user
+            ----------------------------------------------------
         */
 
-        if (
-            !isset($_SESSION["user"])
-        ) {
+        if (!isset($_SESSION["user"])) {
 
             header(
                 "Location:?url=AuthController/login"
@@ -54,7 +49,9 @@ class BorrowController
 
 
         /*
-            Clean Global Book ID
+            ----------------------------------------------------
+            Clean Book ID
+            ----------------------------------------------------
         */
 
         $id =
@@ -63,19 +60,18 @@ class BorrowController
 
         if ($id === "") {
 
-            echo "
-                <h2>Borrow Failed</h2>
+            $error = [
+                "title" =>
+                    "Borrow Failed",
 
-                <p>
-                    Invalid Book ID.
-                </p>
+                "message" =>
+                    "Invalid Book ID."
+            ];
 
-                <br>
 
-                <a href='?url=UserController/books'>
-                    Back Books
-                </a>
-            ";
+            require
+                __DIR__ .
+                "/../Views/user/borrow_error.php";
 
             return;
         }
@@ -91,172 +87,174 @@ class BorrowController
             new BorrowTransactionService();
 
 
-        $result =
-            $transaction->borrow($id);
+        $transactionResult =
+            $transaction->borrow(
+                $id
+            );
 
 
         /*
             ====================================================
-            COMMIT
+            Transaction ABORT
             ====================================================
         */
 
         if (
-            isset($result["status"]) &&
-            $result["status"] === "COMMIT"
+            !isset(
+                $transactionResult["status"]
+            ) ||
+            $transactionResult["status"] !== "COMMIT"
         ) {
 
-            /*
-                Save Borrow History
-            */
-
-            $service =
-                new BorrowService();
-
-
-            $historyResult =
-                $service->createHistory(
-                    $user["id"],
-                    $id
-                );
-
-
-            /*
-                History failed
-            */
-
-            if (!$historyResult) {
-
-                echo "
-                    <h2>
-                        Borrow History Failed
-                    </h2>
-
-                    <hr>
-
-                    <p>
-                        Book stock was committed,
-                        but borrow history could not
-                        be saved.
-                    </p>
-
-                    <p>
-                        Book ID:
-                        " .
-                    htmlspecialchars(
-                        $id,
-                        ENT_QUOTES,
-                        "UTF-8"
-                    ) .
-                    "
-                    </p>
-
-                    <br>
-
-                    <a href='?url=UserController/books'>
-                        Back Books
-                    </a>
-                ";
-
-                return;
-            }
-
-
-            /*
-                Successful
-            */
-
-            echo "
-                <h2>
-                    Borrow Successful
-                </h2>
-
-                <hr>
-
-                <h3>
-                    Transaction Status:
-                    COMMIT
-                </h3>
-
-                <p>
-                    Book ID:
-                    " .
-                htmlspecialchars(
-                    $id,
-                    ENT_QUOTES,
-                    "UTF-8"
-                ) .
-                "
-                </p>
-
-                <br>
-
-                <a href='?url=UserController/books'>
-                    Back Books
-                </a>
-            ";
-        } else {
-
-            /*
-                =================================================
-                ABORT
-                =================================================
-            */
-
             $message =
-                isset($result["message"])
-                ? $result["message"]
-                : "Unknown transaction error";
+                $transactionResult["message"]
+                ??
+                "Unable to borrow this book.";
 
 
-            echo "
-                <h2>
-                    Borrow Failed
-                </h2>
+            $error = [
 
-                <hr>
+                "title" =>
+                    "Borrow Failed",
 
-                <h3>
-                    Transaction Status:
-                    ABORT
-                </h3>
-
-                <p>
-                    " .
-                htmlspecialchars(
+                "message" =>
                     $message,
-                    ENT_QUOTES,
-                    "UTF-8"
-                ) .
-                "
-                </p>
 
-                <p>
-                    Book ID:
-                    " .
-                htmlspecialchars(
-                    $id,
-                    ENT_QUOTES,
-                    "UTF-8"
-                ) .
-                "
-                </p>
+                "book_id" =>
+                    $id
+            ];
 
-                <br>
 
-                <a href='?url=UserController/books'>
-                    Back Books
-                </a>
-            ";
+            require
+                __DIR__ .
+                "/../Views/user/borrow_error.php";
+
+            return;
         }
+
+
+        /*
+            ====================================================
+            Save Borrow History
+            ====================================================
+
+            Distributed node transaction succeeded.
+
+            Now save the central borrow history.
+        */
+
+        $service =
+            new BorrowService();
+
+
+        $historyResult =
+            $service->createHistory(
+                $user["id"],
+                $id
+            );
+
+
+        /*
+            ====================================================
+            History Failed
+            ====================================================
+        */
+
+        if (
+            $historyResult === false
+        ) {
+
+            $error = [
+
+                "title" =>
+                    "Borrow History Failed",
+
+                "message" =>
+                    "The book transaction was completed, "
+                    . "but the borrow history could not be saved.",
+
+                "book_id" =>
+                    $id
+            ];
+
+
+            require
+                __DIR__ .
+                "/../Views/user/borrow_error.php";
+
+            return;
+        }
+
+
+        /*
+            ====================================================
+            Borrow Information
+            ====================================================
+        */
+
+        $borrowDate =
+            $historyResult["borrow_date"]
+            ??
+            date("Y-m-d H:i:s");
+
+
+        $dueDate =
+            $historyResult["due_date"]
+            ??
+            "";
+
+
+        $loanDays =
+            $historyResult["loan_days"]
+            ??
+            $service->getBorrowDays();
+
+
+        /*
+            ====================================================
+            Successful Borrow
+            ====================================================
+        */
+
+        $data = [
+
+            "book_id" =>
+                $id,
+
+            "borrow_date" =>
+                date(
+                    "M d, Y",
+                    strtotime($borrowDate)
+                ),
+
+            "due_date" =>
+                (
+                    $dueDate !== ""
+                    ? date(
+                        "M d, Y",
+                        strtotime($dueDate)
+                    )
+                    : "-"
+                ),
+
+            "loan_days" =>
+                $loanDays
+        ];
+
+
+        /*
+            ----------------------------------------------------
+            Load success view
+            ----------------------------------------------------
+        */
+
+        require
+            __DIR__ .
+            "/../Views/user/borrow_success.php";
+
+        return;
     }
 
-
-    /*
-        ========================================================
-        User Borrow History
-        ========================================================
-    */
 
     /*
         ========================================================
@@ -271,9 +269,7 @@ class BorrowController
         UserMiddleware::check();
 
 
-        if (
-            !isset($_SESSION["user"])
-        ) {
+        if (!isset($_SESSION["user"])) {
 
             header(
                 "Location:?url=AuthController/login"
@@ -291,42 +287,26 @@ class BorrowController
             new BorrowService();
 
 
-        /*
-            IMPORTANT:
-            Use $data consistently.
-        */
-
         $data =
             $service->history(
                 $user["id"]
             );
 
 
-        /*
-            Prevent foreach warning
-        */
-
         if (!is_array($data)) {
+
             $data = [];
         }
 
 
-        /*
-            ========================================================
-            Load Dedicated View File with Explicit Data Variable
-            ========================================================
-            Controller ထဲတွင် HTML များ စုပြုံရေးသားခြင်းကို ဖျက်ပစ်ပြီး 
-            ၎င်းနှင့် သက်ဆိုင်သော သီးသန့် View ဖိုင်ကိုသာ ခေါ်ယူအသုံးပြုစေခြင်း။
-            
-            Intelophense Warning ကျော်ရန် $data အား ပြန်လည်သက်မှတ်ပေးခြင်း။
-        */
+        $GLOBALS["data"] =
+            $data;
 
-        $GLOBALS['data'] = $data;
+
         require
-            __DIR__ . "/../Views/user/borrow_history.php";
+            __DIR__ .
+            "/../Views/user/borrow_history.php";
     }
-
-
 
 
     /*
@@ -349,6 +329,7 @@ class BorrowController
 
 
         if (!is_array($data)) {
+
             $data = [];
         }
 
@@ -379,6 +360,7 @@ class BorrowController
                 <th>Category</th>
                 <th>Node</th>
                 <th>Borrow Date</th>
+                <th>Due Date</th>
                 <th>Return Date</th>
                 <th>Status</th>
             </tr>
@@ -396,131 +378,85 @@ class BorrowController
             echo "
                 <tr>
 
-                <td>
-                    " .
-                (
-                    !empty($row["username"])
-                    ? htmlspecialchars(
-                        $row["username"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["username"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["email"])
-                    ? htmlspecialchars(
-                        $row["email"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["email"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["global_book_id"])
-                    ? htmlspecialchars(
-                        $row["global_book_id"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["global_book_id"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["title"])
-                    ? htmlspecialchars(
-                        $row["title"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["title"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["category"])
-                    ? htmlspecialchars(
-                        $row["category"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["category"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["node"])
-                    ? htmlspecialchars(
-                        $row["node"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["node"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["borrow_date"])
-                    ? htmlspecialchars(
-                        $row["borrow_date"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["borrow_date"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["return_date"])
-                    ? htmlspecialchars(
-                        $row["return_date"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["due_date"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["status"])
-                    ? htmlspecialchars(
-                        $row["status"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["return_date"] ?? "-"
+                )
+                .
+                "</td>
+
+                <td>"
+                .
+                $this->escape(
+                    $row["status"] ?? "-"
+                )
+                .
+                "</td>
 
                 </tr>
             ";
@@ -531,7 +467,7 @@ class BorrowController
 
             echo "
                 <tr>
-                    <td colspan='9'>
+                    <td colspan='10'>
                         No Borrow History
                     </td>
                 </tr>
@@ -565,6 +501,7 @@ class BorrowController
 
 
         if (!is_array($data)) {
+
             $data = [];
         }
 
@@ -597,6 +534,7 @@ class BorrowController
                 <th>Category</th>
                 <th>Node</th>
                 <th>Borrow Date</th>
+                <th>Due Date</th>
                 <th>Status</th>
             </tr>
         ";
@@ -606,10 +544,6 @@ class BorrowController
 
 
         foreach ($data as $row) {
-
-            /*
-                Show only active borrowed books
-            */
 
             if (
                 !isset($row["status"]) ||
@@ -626,117 +560,77 @@ class BorrowController
             echo "
                 <tr>
 
-                <td>
-                    " .
-                (
-                    !empty($row["username"])
-                    ? htmlspecialchars(
-                        $row["username"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["username"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["email"])
-                    ? htmlspecialchars(
-                        $row["email"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["email"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["global_book_id"])
-                    ? htmlspecialchars(
-                        $row["global_book_id"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["global_book_id"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["title"])
-                    ? htmlspecialchars(
-                        $row["title"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["title"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["category"])
-                    ? htmlspecialchars(
-                        $row["category"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["category"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["node"])
-                    ? htmlspecialchars(
-                        $row["node"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["node"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["borrow_date"])
-                    ? htmlspecialchars(
-                        $row["borrow_date"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["borrow_date"] ?? "-"
+                )
+                .
+                "</td>
 
-                <td>
-                    " .
-                (
-                    !empty($row["status"])
-                    ? htmlspecialchars(
-                        $row["status"],
-                        ENT_QUOTES,
-                        "UTF-8"
-                    )
-                    : "-"
-                ) .
-                "
-                </td>
+                <td>"
+                .
+                $this->escape(
+                    $row["due_date"] ?? "-"
+                )
+                .
+                "</td>
+
+                <td>"
+                .
+                $this->escape(
+                    $row["status"] ?? "-"
+                )
+                .
+                "</td>
 
                 </tr>
             ";
@@ -747,7 +641,7 @@ class BorrowController
 
             echo "
                 <tr>
-                    <td colspan='8'>
+                    <td colspan='9'>
                         No Active Borrow Requests
                     </td>
                 </tr>
@@ -758,5 +652,21 @@ class BorrowController
         echo "
             </table>
         ";
+    }
+
+
+    /*
+        ========================================================
+        HTML Escape Helper
+        ========================================================
+    */
+
+    private function escape($value)
+    {
+        return htmlspecialchars(
+            (string)$value,
+            ENT_QUOTES,
+            "UTF-8"
+        );
     }
 }

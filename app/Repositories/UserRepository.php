@@ -231,39 +231,146 @@ class UserRepository
         return $result ? $result->fetch_assoc() : null;
     }
 
-    public function createUser($username, $password, $name, $email, $role)
-    {
-        $dbRole = "user";
-        $localRole = null;
-        $globalRole = null;
+    public function createUser(
+    $username,
+    $password,
+    $name,
+    $email,
+    $role
+) {
 
-        if ($role == "local_admin") {
-            $dbRole = "admin";
-            $localRole = "local_admin";
-        } elseif ($role == "global_user") {
-            $dbRole = "user";
-            $globalRole = "global_user";
-        } elseif ($role == "user") {
-            $dbRole = "user";
-        } elseif ($role == "admin") {
-            $dbRole = "admin";
-        }
+    $dbRole = "user";
+    $localRole = null;
+    $globalRole = null;
 
-        $usernameEsc = $this->db->real_escape_string($username);
-        $passEsc = $this->db->real_escape_string($password);
-        $nameEsc = $this->db->real_escape_string($name);
-        $emailEsc = $this->db->real_escape_string($email);
-        $dbRoleEsc = $this->db->real_escape_string($dbRole);
 
-        $sql = "INSERT INTO users (username,password,name,email,role,local_role,global_role) VALUES ('"
-            . $usernameEsc . "','" . $passEsc . "','" . $nameEsc . "','" . $emailEsc . "','" . $dbRoleEsc . "',"
-            . ($localRole === null ? "NULL" : "'" . $this->db->real_escape_string($localRole) . "'")
-            . ","
-            . ($globalRole === null ? "NULL" : "'" . $this->db->real_escape_string($globalRole) . "'")
-            . ")";
+    /*
+        Local Admin
+    */
+    if ($role === "local_admin") {
 
-        return $this->db->query($sql);
+        $dbRole =
+            "admin";
+
+        $localRole =
+            "local_admin";
     }
+
+
+    /*
+        Normal Admin
+        ----------------
+        If AdminController sends
+        "admin", it is also
+        a local admin.
+    */
+    elseif ($role === "admin") {
+
+        $dbRole =
+            "admin";
+
+        $localRole =
+            "local_admin";
+    }
+
+
+    /*
+        Global User
+    */
+    elseif ($role === "global_user") {
+
+        $dbRole =
+            "user";
+
+        $globalRole =
+            "global_user";
+    }
+
+
+    /*
+        Normal User
+    */
+    elseif ($role === "user") {
+
+        $dbRole =
+            "user";
+    }
+
+
+    $usernameEsc =
+        $this->db->real_escape_string(
+            $username
+        );
+
+    $passEsc =
+        $this->db->real_escape_string(
+            $password
+        );
+
+    $nameEsc =
+        $this->db->real_escape_string(
+            $name
+        );
+
+    $emailEsc =
+        $this->db->real_escape_string(
+            $email
+        );
+
+    $dbRoleEsc =
+        $this->db->real_escape_string(
+            $dbRole
+        );
+
+
+    $sql =
+        "INSERT INTO users
+        (
+            username,
+            password,
+            name,
+            email,
+            role,
+            local_role,
+            global_role
+        )
+        VALUES
+        (
+            '{$usernameEsc}',
+            '{$passEsc}',
+            '{$nameEsc}',
+            '{$emailEsc}',
+            '{$dbRoleEsc}',"
+            .
+            (
+                $localRole === null
+                ? "NULL"
+                : "'" .
+                  $this->db->real_escape_string(
+                      $localRole
+                  )
+                  . "'"
+            )
+            .
+            ","
+            .
+            (
+                $globalRole === null
+                ? "NULL"
+                : "'" .
+                  $this->db->real_escape_string(
+                      $globalRole
+                  )
+                  . "'"
+            )
+            .
+            ")";
+
+
+    return $this->db->query(
+        $sql
+    );
+}
 
     public function existsUsername($username, $excludeId = null)
     {

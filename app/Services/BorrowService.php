@@ -6,6 +6,9 @@ require_once
 require_once
     __DIR__ . "/../Repositories/BookRepository.php";
 
+require_once
+    __DIR__ . "/NotificationService.php";
+
 
 class BorrowService
 {
@@ -13,44 +16,73 @@ class BorrowService
 
     private $bookRepository;
 
+    private $notificationService;
+
+
+    /*
+        ========================================================
+        Constructor
+        ========================================================
+    */
 
     public function __construct()
     {
-        /*
-            Repository Layer
-
-            BorrowRepository
-            -> borrow_history
-
-            BookRepository
-            -> distributed book nodes
-        */
-
         $this->borrowRepository =
             new BorrowRepository();
 
 
         $this->bookRepository =
             new BookRepository();
+
+
+        $this->notificationService =
+            new NotificationService();
     }
 
 
     /*
         ========================================================
-        Distributed Borrow Transaction
+        Distributed Borrow
         ========================================================
+
+        ဒီ method ကို future use အတွက်ထားထားပါတယ်။
+
+        Current controller မှာ
+        BorrowTransactionService ကို တိုက်ရိုက်သုံးပါတယ်။
+
+        Business layer မှာ borrow flow တစ်ခုလုံးကို
+        စုစည်းချင်ရင် ဒီ method ကိုသုံးနိုင်ပါတယ်။
     */
 
     public function borrow(
         $userId,
         $bookId
     ) {
+
         try {
+
+            if (
+                empty($userId) ||
+                !is_numeric($userId)
+            ) {
+
+                return false;
+            }
+
+
+            $bookId =
+                trim($bookId);
+
+
+            if ($bookId === "") {
+
+                return false;
+            }
+
 
             /*
                 ------------------------------------------------
-                Step 1
-                Update distributed node stock
+                Update distributed stock
                 ------------------------------------------------
             */
 
@@ -62,14 +94,14 @@ class BorrowService
 
 
             if (!$stock) {
+
                 return false;
             }
 
 
             /*
                 ------------------------------------------------
-                Step 2
-                Save borrow history
+                Save history
                 ------------------------------------------------
             */
 
@@ -80,13 +112,23 @@ class BorrowService
                 );
 
 
-            if (!$history) {
+            if ($history === false) {
+
                 return false;
             }
 
 
-            return true;
-        } catch (Exception $e) {
+            return $history;
+
+
+        } catch (
+            Throwable $e
+        ) {
+
+            error_log(
+                "BorrowService::borrow Error: "
+                . $e->getMessage()
+            );
 
             return false;
         }
@@ -95,7 +137,78 @@ class BorrowService
 
     /*
         ========================================================
-        Insert Borrow History
+        Get Borrow Days
+        ========================================================
+    */
+
+    public function getBorrowDays()
+    {
+        $days =
+            $this->borrowRepository
+            ->getBorrowDays();
+
+
+        if (
+            !is_numeric($days) ||
+            (int)$days <= 0
+        ) {
+
+            return 5;
+        }
+
+
+        return (int)$days;
+    }
+
+
+    /*
+        ========================================================
+        Calculate Borrow Dates
+        ========================================================
+    */
+
+    public function calculateBorrowDates()
+    {
+        $loanDays =
+            $this->getBorrowDays();
+
+
+        $borrowDate =
+            new DateTime();
+
+
+        $dueDate =
+            clone $borrowDate;
+
+
+        $dueDate->modify(
+            "+" . $loanDays . " days"
+        );
+
+
+        return [
+
+            "borrow_date" =>
+                $borrowDate
+                ->format(
+                    "Y-m-d H:i:s"
+                ),
+
+            "due_date" =>
+                $dueDate
+                ->format(
+                    "Y-m-d H:i:s"
+                ),
+
+            "loan_days" =>
+                $loanDays
+        ];
+    }
+
+
+    /*
+        ========================================================
+        Create Borrow History
         ========================================================
     */
 
@@ -104,55 +217,101 @@ class BorrowService
         $bookId
     ) {
 
-        /*
-            Validate user ID
-        */
+        try {
 
-        if (
-            empty($userId) ||
-            !is_numeric($userId)
+            /*
+                ------------------------------------------------
+                Validate User ID
+                ------------------------------------------------
+            */
+
+            if (
+                empty($userId) ||
+                !is_numeric($userId)
+            ) {
+
+                return false;
+            }
+
+
+            /*
+                ------------------------------------------------
+                Validate Book ID
+                ------------------------------------------------
+            */
+
+            $bookId =
+                trim($bookId);
+
+
+            if ($bookId === "") {
+
+                return false;
+            }
+
+
+            /*
+                ------------------------------------------------
+                Calculate dates
+                ------------------------------------------------
+            */
+
+            $dates =
+                $this->calculateBorrowDates();
+
+
+            /*
+                ------------------------------------------------
+                Save history
+                ------------------------------------------------
+            */
+
+            $saved =
+                $this->borrowRepository
+                ->createHistory(
+                    (int)$userId,
+                    $bookId,
+                    $dates["borrow_date"],
+                    $dates["due_date"]
+                );
+
+
+            if (!$saved) {
+
+                return false;
+            }
+
+
+            /*
+                ------------------------------------------------
+                Return complete borrow information
+                ------------------------------------------------
+            */
+
+            return [
+
+                "borrow_date" =>
+                    $dates["borrow_date"],
+
+                "due_date" =>
+                    $dates["due_date"],
+
+                "loan_days" =>
+                    $dates["loan_days"]
+            ];
+
+
+        } catch (
+            Throwable $e
         ) {
-            return false;
-        }
 
-
-        /*
-            Validate Global Book ID
-        */
-
-        $bookId =
-            trim($bookId);
-
-
-        if ($bookId === "") {
-            return false;
-        }
-
-
-        /*
-            ----------------------------------------------------
-            Calculate 5 Days Borrow Limit
-            ----------------------------------------------------
-            borrow_date = Current time
-            due_date    = Current time + 5 days
-        */
-
-        $borrowDate = date('Y-m-d H:i:s');
-        $dueDate = date('Y-m-d H:i:s', strtotime('+5 days'));
-
-
-        /*
-            Insert into borrow_history with dates
-        */
-
-        return
-            $this->borrowRepository
-            ->createHistory(
-                (int)$userId,
-                $bookId,
-                $borrowDate,
-                $dueDate
+            error_log(
+                "BorrowService::createHistory Error: "
+                . $e->getMessage()
             );
+
+            return false;
+        }
     }
 
 
@@ -170,6 +329,7 @@ class BorrowService
             empty($userId) ||
             !is_numeric($userId)
         ) {
+
             return [];
         }
 
@@ -184,7 +344,7 @@ class BorrowService
 
     /*
         ========================================================
-        Admin View All Borrow History
+        Admin All Borrow History
         ========================================================
     */
 
@@ -205,8 +365,8 @@ class BorrowService
     public function notificationCount()
     {
         return
-            $this->borrowRepository
-            ->getActiveBorrowCount();
+            $this->notificationService
+            ->getUnreadCount();
     }
 
 
@@ -219,60 +379,99 @@ class BorrowService
     public function notifications(
         $limit = 8
     ) {
+
         return
-            $this->borrowRepository
-            ->getNotifications(
-                $limit
+            $this->notificationService
+            ->getRecent(
+                (int)$limit
             );
     }
 
 
     /*
         ========================================================
-        4th Day Return Reminder Notification (New Feature)
-        ========================================================
-        This function checks for active borrows where due_date is 
-        exactly 1 day away (4th day of borrowing) and sends a notification.
-    */
-
-    /*
-        ========================================================
-        4th Day Return Reminder Notification (Updated)
+        Check And Send Return Reminders
         ========================================================
     */
 
     public function checkAndSendReminders()
     {
         try {
-            // အပ်ရန် ၁ ရက်အလို ဖြစ်နေသော စာရင်းများကို ဆွဲထုတ်ခြင်း
-            $upcomingDeadlines = $this->borrowRepository->getUpcomingDeadlines(1);
 
-            if (empty($upcomingDeadlines)) {
+            /*
+                ------------------------------------------------
+                Get books due tomorrow
+                ------------------------------------------------
+            */
+
+            $upcomingDeadlines =
+                $this->borrowRepository
+                ->getUpcomingDeadlines(
+                    1
+                );
+
+
+            if (
+                empty($upcomingDeadlines)
+            ) {
+
                 return true;
             }
 
-            foreach ($upcomingDeadlines as $borrow) {
-                $userId = $borrow['user_id'];
 
-                // User ရဲ့ အမည်ကိုပါ Noti ထဲမှာ ထည့်ပြရန်အတွက် သုံးစွဲသူအမည်ကို ဆွဲထုတ်ခြင်း
-                $username = "အသုံးပြုသူ (ID: #{$userId})";
-                if (isset($borrow['username'])) {
-                    $username = $borrow['username'];
-                }
+            /*
+                ------------------------------------------------
+                Create notification
+                ------------------------------------------------
+            */
 
-                $bookTitle = $borrow['book_title'] ?? 'စာအုပ်';
+            foreach (
+                $upcomingDeadlines
+                as $borrow
+            ) {
 
-                $title = "စာအုပ်ပြန်အပ်ရန် သတိပေးချက် (၄ ရက်မြောက်နေ့)";
-                $message = "{$username} ငှားရမ်းထားသော '{$bookTitle}' စာအုပ်သည် မနက်ဖြန်တွင် ၅ ရက်ပြည့်တော့မည် ဖြစ်သဖြင့် ပြန်လည်အပ်နှံပေးရန် အကြောင်းကြားစာ ပို့ထားရန် လိုအပ်ပါသည်။";
-                $type = "Reminder";
-                $icon = "⚠️";
+                $userId =
+                    $borrow["user_id"]
+                    ?? 0;
 
-                // စနစ်ထဲသို့ Noti အဖြစ် ထည့်သွင်းခြင်း
-                $this->borrowRepository->sendNotification($userId, $title, $message, $type, $icon);
+
+                $username =
+                    $borrow["username"]
+                    ?? "";
+
+
+                $bookTitle =
+                    $borrow["book_title"]
+                    ?? "စာအုပ်";
+
+
+                $dueDate =
+                    $borrow["due_date"]
+                    ?? "";
+
+
+                $this->notificationService
+                    ->createBorrowReminder(
+                        $userId,
+                        $username,
+                        $bookTitle,
+                        $dueDate
+                    );
             }
 
+
             return true;
-        } catch (Exception $e) {
+
+
+        } catch (
+            Throwable $e
+        ) {
+
+            error_log(
+                "BorrowService::checkAndSendReminders Error: "
+                . $e->getMessage()
+            );
+
             return false;
         }
     }

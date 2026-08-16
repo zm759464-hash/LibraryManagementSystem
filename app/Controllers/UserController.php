@@ -5,7 +5,7 @@ require_once "../app/Middleware/AuthMiddleware.php";
 require_once "../app/Middleware/UserMiddleware.php";
 require_once "../app/Services/UserService.php";
 require_once "../app/Middleware/AdminMiddleware.php";
-
+require_once "../app/Services/NotificationService.php";
 
 class UserController
 {

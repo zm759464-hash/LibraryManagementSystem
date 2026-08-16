@@ -1,101 +1,308 @@
 <?php
 
-
 class NodeManager
 {
+    /*
+    ========================================================
+    DISTRIBUTED DATABASE NODE MANAGER
+    ========================================================
 
+    Configuration is loaded from:
 
-    private $nodes = [
+    app/Config/nodes.php
 
-        "Technology" => "library_node1",
+    Node 1 → Technology → 3307
+    Node 2 → Science    → 3308
+    Node 3 → Fiction    → 3309
+    ========================================================
+    */
 
-        "Science" => "library_node2",
-
-        "Fiction" => "library_node3"
-
-    ];
-
-
-
+    private $nodes = [];
 
 
     /*
-        Find Database Node
-        By Book Category
+    ========================================================
+    CONSTRUCTOR
+    ========================================================
     */
 
-    public function getNodeByCategory($category)
+    public function __construct()
     {
+        /*
+            Load central node configuration
+        */
+
+        $configPath =
+            dirname(__DIR__, 2) .
+            "/Config/nodes.php";
 
 
-        if (isset($this->nodes[$category])) {
+        if (!file_exists($configPath)) {
 
-
-            return $this->nodes[$category];
+            throw new Exception(
+                "Node configuration file not found: "
+                . $configPath
+            );
         }
 
+
+        $config =
+            require $configPath;
+
+
+        /*
+            Validate configuration
+        */
+
+        if (!is_array($config)) {
+
+            throw new Exception(
+                "Invalid node configuration."
+            );
+        }
+
+
+        /*
+            Convert:
+
+            node1 → Technology
+            node2 → Science
+            node3 → Fiction
+        */
+
+        $this->nodes = [
+
+            "Technology" =>
+                $config["node1"],
+
+            "Science" =>
+                $config["node2"],
+
+            "Fiction" =>
+                $config["node3"]
+
+        ];
+    }
+
+
+    /*
+    ========================================================
+    FIND DATABASE NODE BY CATEGORY
+    ========================================================
+    */
+
+    public function getNodeByCategory(
+        $category
+    ) {
+
+        if (
+            isset(
+                $this->nodes[$category]
+            )
+        ) {
+
+            return
+                $this->nodes[$category];
+        }
 
 
         return null;
     }
 
 
-
-
-
-
     /*
-        Get All Nodes
+    ========================================================
+    GET ALL DISTRIBUTED NODES
+    ========================================================
     */
-
 
     public function getAllNodes()
     {
-
-
         return $this->nodes;
     }
 
 
-
-
-
     /*
-        Database Connection
+    ========================================================
+    DATABASE CONNECTION
+    ========================================================
     */
 
+    public function connect(
+        $node
+    ) {
 
-    public function connect($database)
-    {
+        /*
+        ----------------------------------------------------
+        Accept node configuration array
+        ----------------------------------------------------
+        */
+
+        if (is_array($node)) {
+
+            $host =
+                $node["host"];
+
+            $port =
+                $node["port"];
+
+            $user =
+                $node["user"];
+
+            $password =
+                $node["password"];
+
+            $database =
+                $node["database"];
+
+        } else {
+
+            /*
+            ------------------------------------------------
+            Backward compatibility
+            ------------------------------------------------
+
+            If a database name is passed directly,
+            try to find it from the configuration.
+            */
+
+            $nodeConfig =
+                $this->findNodeByDatabase(
+                    $node
+                );
 
 
-        $connection = new mysqli(
+            if ($nodeConfig === null) {
 
-            "localhost",
+                throw new Exception(
+                    "Unknown database node: "
+                    . $node
+                );
+            }
 
-            "root",
 
-            "",
+            $host =
+                $nodeConfig["host"];
 
-            $database
+            $port =
+                $nodeConfig["port"];
 
+            $user =
+                $nodeConfig["user"];
+
+            $password =
+                $nodeConfig["password"];
+
+            $database =
+                $nodeConfig["database"];
+        }
+
+
+        /*
+        ====================================================
+        MYSQL CONNECTION
+        ====================================================
+        */
+
+        mysqli_report(
+            MYSQLI_REPORT_OFF
         );
 
 
+        $connection =
+            new mysqli(
 
-        if ($connection->connect_error) {
+                $host,
 
+                $user,
+
+                $password,
+
+                $database,
+
+                $port
+
+            );
+
+
+        /*
+        ====================================================
+        CONNECTION ERROR
+        ====================================================
+        */
+
+        if (
+            $connection->connect_errno
+        ) {
 
             throw new Exception(
 
                 "Database Connection Failed: "
-                    . $database
+                . $database
+                . " on port "
+                . $port
+                . " - "
+                . $connection->connect_error
 
             );
         }
 
 
+        /*
+        ====================================================
+        UTF-8 / Myanmar Text Support
+        ====================================================
+        */
+
+        if (
+            !$connection->set_charset(
+                "utf8mb4"
+            )
+        ) {
+
+            $connection->close();
+
+
+            throw new Exception(
+                "Failed to set utf8mb4 charset for "
+                . $database
+            );
+        }
+
 
         return $connection;
+    }
+
+
+    /*
+    ========================================================
+    FIND NODE BY DATABASE NAME
+    ========================================================
+    */
+
+    private function findNodeByDatabase(
+        $database
+    ) {
+
+        foreach (
+            $this->nodes
+            as $node
+        ) {
+
+            if (
+                isset(
+                    $node["database"]
+                )
+                &&
+                $node["database"] ===
+                    $database
+            ) {
+
+                return $node;
+            }
+        }
+
+
+        return null;
     }
 }

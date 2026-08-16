@@ -1,0 +1,4 @@
+markNotificationsRead
+deleteNotification
+notificationDropdown
+notificationBadge

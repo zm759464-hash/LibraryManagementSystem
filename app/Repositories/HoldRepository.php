@@ -15,10 +15,8 @@ class HoldRepository
     public function __construct()
     {
 
-
         $database =
             new Database();
-
 
         $this->db =
             $database->getConnection();
@@ -26,40 +24,113 @@ class HoldRepository
 
 
 
-
     /*
-        User Create Hold
+    ============================================================
+    USER CREATE HOLD
+    ============================================================
 
-        Prevent duplicate active hold requests
+    Business Rule:
+
+        A Hold Request can only exist when:
+
+            available_copies = 0
+
+        Therefore:
+
+            Available 3 copies
+                -> Hold NOT allowed
+
+            Available 1 copy
+                -> Hold NOT allowed
+
+            Out of stock
+                -> Hold allowed
+
+    This repository also prevents:
+
+        pending hold
+        approved hold
+
+    from being duplicated for the same user/book.
+    ============================================================
     */
+
     public function create(
         $userId,
         $bookId
     ) {
 
+        /*
+        --------------------------------------------------------
+        Validate User ID
+        --------------------------------------------------------
+        */
+
+        if (
+            empty($userId) ||
+            !is_numeric($userId)
+        ) {
+
+            return [
+                "success" => false,
+                "reason" => "invalid_user"
+            ];
+        }
+
 
         /*
-            Check existing active hold
+        --------------------------------------------------------
+        Validate Global Book ID
+        --------------------------------------------------------
+        */
 
-            pending / approved
-            cannot create another hold
+        $bookId =
+            trim((string)$bookId);
+
+
+        if ($bookId === "") {
+
+            return [
+                "success" => false,
+                "reason" => "invalid_book"
+            ];
+        }
+
+
+
+        /*
+        ========================================================
+        CHECK DUPLICATE ACTIVE HOLD
+        ========================================================
+
+        Active statuses:
+
+            pending
+            approved
+
+        A user cannot have more than one active
+        hold request for the same book.
+        ========================================================
         */
 
         $checkSql = "
 
-        SELECT
-            id,
-            status
+            SELECT
+                id,
+                status
 
-        FROM holds
+            FROM holds
 
-        WHERE user_id = ?
+            WHERE user_id = ?
 
-        AND global_book_id = ?
+            AND global_book_id = ?
 
-        AND status IN ('pending', 'approved')
+            AND status IN (
+                'pending',
+                'approved'
+            )
 
-        LIMIT 1
+            LIMIT 1
 
         ";
 
@@ -72,7 +143,10 @@ class HoldRepository
 
         if (!$checkStmt) {
 
-            return false;
+            return [
+                "success" => false,
+                "reason" => "database_error"
+            ];
         }
 
 
@@ -83,43 +157,66 @@ class HoldRepository
         );
 
 
-        $checkStmt->execute();
+        if (!$checkStmt->execute()) {
+
+            $checkStmt->close();
+
+            return [
+                "success" => false,
+                "reason" => "database_error"
+            ];
+        }
 
 
         $existing =
             $checkStmt->get_result();
 
 
+        /*
+        --------------------------------------------------------
+        Existing active hold
+        --------------------------------------------------------
+        */
+
         if (
             $existing &&
             $existing->num_rows > 0
         ) {
 
-            return false;
+            $checkStmt->close();
+
+            return [
+                "success" => false,
+                "reason" => "duplicate_hold"
+            ];
         }
 
+
+        $checkStmt->close();
 
 
 
         /*
-            Create new hold request
+        ========================================================
+        CREATE HOLD REQUEST
+        ========================================================
         */
 
         $sql = "
 
-        INSERT INTO holds
-        (
-            user_id,
-            global_book_id,
-            status
-        )
+            INSERT INTO holds
+            (
+                user_id,
+                global_book_id,
+                status
+            )
 
-        VALUES
-        (
-            ?,
-            ?,
-            'pending'
-        )
+            VALUES
+            (
+                ?,
+                ?,
+                'pending'
+            )
 
         ";
 
@@ -132,7 +229,10 @@ class HoldRepository
 
         if (!$stmt) {
 
-            return false;
+            return [
+                "success" => false,
+                "reason" => "database_error"
+            ];
         }
 
 
@@ -143,51 +243,83 @@ class HoldRepository
         );
 
 
-        return
-            $stmt->execute();
+        if (
+            !$stmt->execute()
+        ) {
+
+            $stmt->close();
+
+            return [
+                "success" => false,
+                "reason" => "database_error"
+            ];
+        }
+
+
+        $stmt->close();
+
+
+        /*
+        --------------------------------------------------------
+        Successfully created
+        --------------------------------------------------------
+        */
+
+        return [
+            "success" => true,
+            "reason" => "created"
+        ];
     }
 
 
 
-
     /*
-        User View Own Holds
-
-        Show newest request first
+    ============================================================
+    USER VIEW OWN HOLDS
+    ============================================================
     */
+
     public function myHolds(
         $userId
     ) {
 
+        if (
+            empty($userId) ||
+            !is_numeric($userId)
+        ) {
+
+            return false;
+        }
+
 
         $sql = "
 
-        SELECT
+            SELECT
 
-            holds.id,
+                holds.id,
 
-            holds.global_book_id,
+                holds.global_book_id,
 
-            holds.status,
+                holds.status,
 
-            holds.created_at,
+                holds.created_at,
 
-            books.title,
+                books.title,
 
-            books.author,
+                books.author,
 
-            books.category
+                books.category
 
-        FROM holds
+            FROM holds
 
-        LEFT JOIN books
+            LEFT JOIN books
 
-            ON books.global_book_id =
-            holds.global_book_id
+                ON books.global_book_id =
+                holds.global_book_id
 
-        WHERE holds.user_id = ?
+            WHERE holds.user_id = ?
 
-        ORDER BY holds.id DESC
+            ORDER BY holds.id DESC
 
         ";
 
@@ -210,89 +342,105 @@ class HoldRepository
         );
 
 
-        $stmt->execute();
+        if (
+            !$stmt->execute()
+        ) {
+
+            $stmt->close();
+
+            return false;
+        }
 
 
-        return
+        $result =
             $stmt->get_result();
+
+
+        return $result;
     }
 
 
 
-
     /*
-        Admin View All Holds
+    ============================================================
+    ADMIN VIEW ALL HOLDS
+    ============================================================
 
-        Show all hold requests
+    Hold information:
+
+        library_main
+
+    Book information:
+
+        Distributed Nodes
+
+        Technology -> library_node1
+        Science    -> library_node2
+        Fiction    -> library_node3
+
+    The Controller resolves distributed book information.
+    ============================================================
     */
-    /*
-    ========================================================
-    Admin View All Holds
-    ========================================================
 
-    Hold information comes from library_main.
+    public function all()
+    {
 
-    Book information is resolved separately
-    from distributed nodes.
-*/
-public function all()
-{
-    $sql = "
+        $sql = "
 
-    SELECT
+            SELECT
 
-        holds.id,
+                holds.id,
 
-        holds.user_id,
+                holds.user_id,
 
-        holds.global_book_id,
+                holds.global_book_id,
 
-        holds.status,
+                holds.status,
 
-        holds.created_at,
+                holds.created_at,
 
-        users.name,
+                users.name,
 
-        users.email
+                users.email
 
-    FROM holds
+            FROM holds
 
-    JOIN users
+            JOIN users
 
-        ON users.id =
-        holds.user_id
+                ON users.id =
+                holds.user_id
 
-    ORDER BY holds.id DESC
+            ORDER BY holds.id DESC
 
-    ";
+        ";
 
-    $result =
-        $this->db->query(
-            $sql
-        );
 
-    return $result;
-}
+        $result =
+            $this->db->query(
+                $sql
+            );
 
+
+        return $result;
+    }
 
 
 
     /*
-        Admin Response
-
-        Approve / Reject
-
-        Only pending request can
-        be changed
+    ============================================================
+    ADMIN APPROVE / REJECT HOLD
+    ============================================================
     */
+
     public function updateStatus(
         $id,
         $status
     ) {
 
-
         /*
-            Allow only valid status
+        --------------------------------------------------------
+        Only valid statuses
+        --------------------------------------------------------
         */
 
         if (
@@ -311,21 +459,22 @@ public function all()
 
 
 
-
         /*
-            Update only pending request
+        --------------------------------------------------------
+        Only pending requests can be changed
+        --------------------------------------------------------
         */
 
         $sql = "
 
-        UPDATE holds
+            UPDATE holds
 
-        SET
-            status = ?
+            SET
+                status = ?
 
-        WHERE id = ?
+            WHERE id = ?
 
-        AND status = 'pending'
+            AND status = 'pending'
 
         ";
 
@@ -349,10 +498,24 @@ public function all()
         );
 
 
-        $stmt->execute();
+        if (
+            !$stmt->execute()
+        ) {
+
+            $stmt->close();
+
+            return false;
+        }
+
+
+        $affected =
+            $stmt->affected_rows;
+
+
+        $stmt->close();
 
 
         return
-            $stmt->affected_rows > 0;
+            $affected > 0;
     }
 }

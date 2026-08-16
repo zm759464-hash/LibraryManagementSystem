@@ -6,10 +6,15 @@ require_once
 require_once
     __DIR__ . "/../Interfaces/BookRepositoryInterface.php";
 
+require_once
+    __DIR__ . "/../Infrastructure/Distributed/NodeManager.php";
+
 
 class BookRepository implements BookRepositoryInterface
 {
     private $db;
+
+    private $nodeManager;
 
 
     /*
@@ -26,15 +31,17 @@ class BookRepository implements BookRepositoryInterface
 
         $this->db =
             $database->getConnection();
+
+
+        $this->nodeManager =
+            new NodeManager();
     }
 
 
     /*
         ========================================================
-        Main Database Books
+        Get All Books
         ========================================================
-
-        Global View
     */
 
     public function getAllBooks()
@@ -56,15 +63,12 @@ class BookRepository implements BookRepositoryInterface
         ========================================================
         Resolve Distributed Node
         ========================================================
-
-        TECH-xxxx -> library_node1
-        SCI-xxxx  -> library_node2
-        FIC-xxxx  -> library_node3
     */
 
     private function getNodeDatabase(
         $globalBookId
     ) {
+
         $globalBookId =
             strtoupper(
                 trim($globalBookId)
@@ -77,6 +81,7 @@ class BookRepository implements BookRepositoryInterface
                 "TECH-"
             )
         ) {
+
             return "library_node1";
         }
 
@@ -87,6 +92,7 @@ class BookRepository implements BookRepositoryInterface
                 "SCI-"
             )
         ) {
+
             return "library_node2";
         }
 
@@ -97,6 +103,7 @@ class BookRepository implements BookRepositoryInterface
                 "FIC-"
             )
         ) {
+
             return "library_node3";
         }
 
@@ -114,9 +121,12 @@ class BookRepository implements BookRepositoryInterface
     private function generateBookId(
         $category
     ) {
-        switch (strtolower(
+
+        switch (
+            strtolower(
                 trim($category)
-            )) {
+            )
+        ) {
 
             case "technology":
 
@@ -148,22 +158,18 @@ class BookRepository implements BookRepositoryInterface
         }
 
 
-        /*
-            microtime + random number
-
-            This reduces the possibility
-            of duplicate Global IDs.
-        */
-
         return
-            $prefix .
-            "-" .
-            str_replace(
+            $prefix
+            . "-"
+            . str_replace(
                 ".",
                 "",
                 microtime(true)
-            ) .
-            rand(100, 999);
+            )
+            . rand(
+                100,
+                999
+            );
     }
 
 
@@ -171,24 +177,12 @@ class BookRepository implements BookRepositoryInterface
         ========================================================
         Create Book
         ========================================================
-
-        Category
-            ↓
-        Distributed Node
-
-        Technology
-            -> library_node1
-
-        Science
-            -> library_node2
-
-        Fiction
-            -> library_node3
     */
 
     public function create(
         $data
     ) {
+
         $title =
             trim(
                 $data["title"] ?? ""
@@ -209,48 +203,33 @@ class BookRepository implements BookRepositoryInterface
 
         $available =
             (int)(
-                $data["available_copies"] ?? 0
+                $data["available_copies"]
+                ?? 0
             );
 
 
         /*
+            ----------------------------------------------------
             Resolve node
+            ----------------------------------------------------
         */
 
-        switch ($category) {
-
-            case "Technology":
-
-                $node =
-                    "library_node1";
-
-                break;
+        $node =
+            $this->resolveNode(
+                $category
+            );
 
 
-            case "Science":
+        if (!$node) {
 
-                $node =
-                    "library_node2";
-
-                break;
-
-
-            case "Fiction":
-
-                $node =
-                    "library_node3";
-
-                break;
-
-
-            default:
-
-                return false;
+            return false;
         }
 
 
         /*
-            Generate unique Global ID
+            ----------------------------------------------------
+            Generate Global ID
+            ----------------------------------------------------
         */
 
         $globalId =
@@ -260,29 +239,50 @@ class BookRepository implements BookRepositoryInterface
 
 
         if (!$globalId) {
+
             return false;
         }
 
 
         /*
-            Connect to target node
+            ----------------------------------------------------
+            Connect target node
+            ----------------------------------------------------
         */
 
-        $conn =
-            $this->getNodeConnection(
-                $node
+        try {
+
+            $conn =
+                $this->getNodeConnection(
+                    $node
+                );
+
+        } catch (
+            Throwable $e
+        ) {
+
+            error_log(
+                "BookRepository::create node error: "
+                . $e->getMessage()
             );
+
+            return false;
+        }
 
 
         if (
+            !$conn ||
             $conn->connect_error
         ) {
+
             return false;
         }
 
 
         /*
-            Insert Book
+            ----------------------------------------------------
+            Insert
+            ----------------------------------------------------
         */
 
         $sql = "
@@ -306,9 +306,8 @@ class BookRepository implements BookRepositoryInterface
 
 
         $stmt =
-            $conn->prepare(
-                $sql
-            );
+            $conn
+            ->prepare($sql);
 
 
         if (!$stmt) {
@@ -333,6 +332,15 @@ class BookRepository implements BookRepositoryInterface
             $stmt->execute();
 
 
+        if (!$result) {
+
+            error_log(
+                "BookRepository::create error: "
+                . $stmt->error
+            );
+        }
+
+
         $stmt->close();
 
         $conn->close();
@@ -352,8 +360,11 @@ class BookRepository implements BookRepositoryInterface
         $id,
         $data
     ) {
+
         $id =
-            trim($id);
+            strtoupper(
+                trim($id)
+            );
 
 
         $title =
@@ -376,12 +387,15 @@ class BookRepository implements BookRepositoryInterface
 
         $copies =
             (int)(
-                $data["available_copies"] ?? 0
+                $data["available_copies"]
+                ?? 0
             );
 
 
         /*
-            Find current node
+            ----------------------------------------------------
+            Resolve shard
+            ----------------------------------------------------
         */
 
         $node =
@@ -391,29 +405,70 @@ class BookRepository implements BookRepositoryInterface
 
 
         if (!$node) {
+
             return false;
         }
 
 
         /*
-            Connect to node
+            ----------------------------------------------------
+            Validate category against shard
+            ----------------------------------------------------
         */
 
-        $conn =
-            $this->getNodeConnection(
-                $node
+        $expectedCategory =
+            $this->getExpectedCategory(
+                $id
             );
 
 
         if (
-            $conn->connect_error
+            $expectedCategory === null
+            ||
+            strcasecmp(
+                $category,
+                $expectedCategory
+            ) !== 0
         ) {
+
             return false;
         }
 
 
         /*
-            Update Book
+            ----------------------------------------------------
+            Connect
+            ----------------------------------------------------
+        */
+
+        try {
+
+            $conn =
+                $this->getNodeConnection(
+                    $node
+                );
+
+        } catch (
+            Throwable $e
+        ) {
+
+            return false;
+        }
+
+
+        if (
+            !$conn ||
+            $conn->connect_error
+        ) {
+
+            return false;
+        }
+
+
+        /*
+            ----------------------------------------------------
+            Update
+            ----------------------------------------------------
         */
 
         $sql = "
@@ -425,14 +480,14 @@ class BookRepository implements BookRepositoryInterface
                 category = ?,
                 available_copies = ?
 
-            WHERE global_book_id = ?
+            WHERE
+                global_book_id = ?
         ";
 
 
         $stmt =
-            $conn->prepare(
-                $sql
-            );
+            $conn
+            ->prepare($sql);
 
 
         if (!$stmt) {
@@ -475,13 +530,12 @@ class BookRepository implements BookRepositoryInterface
     public function delete(
         $id
     ) {
+
         $id =
-            trim($id);
+            strtoupper(
+                trim($id)
+            );
 
-
-        /*
-            Find distributed node
-        */
 
         $node =
             $this->getNodeDatabase(
@@ -490,30 +544,34 @@ class BookRepository implements BookRepositoryInterface
 
 
         if (!$node) {
+
             return false;
         }
 
 
-        /*
-            Connect to node
-        */
+        try {
 
-        $conn =
-            $this->getNodeConnection(
-                $node
-            );
+            $conn =
+                $this->getNodeConnection(
+                    $node
+                );
+
+        } catch (
+            Throwable $e
+        ) {
+
+            return false;
+        }
 
 
         if (
+            !$conn ||
             $conn->connect_error
         ) {
+
             return false;
         }
 
-
-        /*
-            Delete book
-        */
 
         $sql = "
             DELETE FROM books
@@ -522,9 +580,8 @@ class BookRepository implements BookRepositoryInterface
 
 
         $stmt =
-            $conn->prepare(
-                $sql
-            );
+            $conn
+            ->prepare($sql);
 
 
         if (!$stmt) {
@@ -566,8 +623,11 @@ class BookRepository implements BookRepositoryInterface
     public function findById(
         $id
     ) {
+
         $id =
-            trim($id);
+            strtoupper(
+                trim($id)
+            );
 
 
         $node =
@@ -577,31 +637,46 @@ class BookRepository implements BookRepositoryInterface
 
 
         if (!$node) {
+
             return null;
         }
 
 
-        $conn =
-            $this->getNodeConnection(
-                $node
-            );
+        try {
+
+            $conn =
+                $this->getNodeConnection(
+                    $node
+                );
+
+        } catch (
+            Throwable $e
+        ) {
+
+            return null;
+        }
 
 
         if (
+            !$conn ||
             $conn->connect_error
         ) {
+
             return null;
         }
 
 
+        $sql = "
+            SELECT *
+            FROM books
+            WHERE global_book_id = ?
+            LIMIT 1
+        ";
+
+
         $stmt =
-            $conn->prepare(
-                "
-                SELECT *
-                FROM books
-                WHERE global_book_id = ?
-                "
-            );
+            $conn
+            ->prepare($sql);
 
 
         if (!$stmt) {
@@ -621,10 +696,12 @@ class BookRepository implements BookRepositoryInterface
         $stmt->execute();
 
 
+        $result =
+            $stmt->get_result();
+
+
         $book =
-            $stmt
-            ->get_result()
-            ->fetch_assoc();
+            $result->fetch_assoc();
 
 
         $stmt->close();
@@ -632,25 +709,7 @@ class BookRepository implements BookRepositoryInterface
         $conn->close();
 
 
-        return $book;
-    }
-
-
-    /*
-        ========================================================
-        Node Connection
-        ========================================================
-    */
-
-    private function getNodeConnection(
-        $database
-    ) {
-        return new mysqli(
-            "localhost",
-            "root",
-            "",
-            $database
-        );
+        return $book ?: null;
     }
 
 
@@ -659,29 +718,22 @@ class BookRepository implements BookRepositoryInterface
         Borrow Book
         ========================================================
 
-        Distributed Node
+        Pessimistic Lock
 
-        available_copies - 1
+        SELECT ... FOR UPDATE
 
-        Only borrow when:
-            available_copies > 0
-
-        This prevents:
-            available_copies < 0
+        available_copies > 0 ဖြစ်မှသာ borrow ခွင့်ပြုမယ်။
     */
 
     public function borrowBook(
         $globalBookId
     ) {
+
         $globalBookId =
-            trim(
-                $globalBookId
+            strtoupper(
+                trim($globalBookId)
             );
 
-
-        /*
-            Resolve correct shard
-        */
 
         $node =
             $this->getNodeDatabase(
@@ -690,30 +742,39 @@ class BookRepository implements BookRepositoryInterface
 
 
         if (!$node) {
+
             return false;
         }
 
 
-        /*
-            Connect to target node
-        */
+        try {
 
-        $conn =
-            $this->getNodeConnection(
-                $node
-            );
+            $conn =
+                $this->getNodeConnection(
+                    $node
+                );
+
+        } catch (
+            Throwable $e
+        ) {
+
+            return false;
+        }
 
 
         if (
+            !$conn ||
             $conn->connect_error
         ) {
+
             return false;
         }
 
 
         /*
-            Start transaction on
-            the target node.
+            ----------------------------------------------------
+            Start transaction
+            ----------------------------------------------------
         */
 
         $conn->begin_transaction();
@@ -722,12 +783,9 @@ class BookRepository implements BookRepositoryInterface
         try {
 
             /*
-                Pessimistic row locking
-
-                SELECT ... FOR UPDATE
-
-                This locks the specific book row
-                while checking stock.
+                ------------------------------------------------
+                Lock book row
+                ------------------------------------------------
             */
 
             $selectSql = "
@@ -736,16 +794,16 @@ class BookRepository implements BookRepositoryInterface
 
                 FROM books
 
-                WHERE global_book_id = ?
+                WHERE
+                    global_book_id = ?
 
                 FOR UPDATE
             ";
 
 
             $selectStmt =
-                $conn->prepare(
-                    $selectSql
-                );
+                $conn
+                ->prepare($selectSql);
 
 
             if (!$selectStmt) {
@@ -781,7 +839,9 @@ class BookRepository implements BookRepositoryInterface
 
 
             /*
-                Book does not exist
+                ------------------------------------------------
+                Book not found
+                ------------------------------------------------
             */
 
             if (!$book) {
@@ -795,7 +855,9 @@ class BookRepository implements BookRepositoryInterface
 
 
             /*
-                No available copy
+                ------------------------------------------------
+                No stock
+                ------------------------------------------------
             */
 
             if (
@@ -811,7 +873,9 @@ class BookRepository implements BookRepositoryInterface
 
 
             /*
-                Update stock
+                ------------------------------------------------
+                Decrease stock
+                ------------------------------------------------
             */
 
             $updateSql = "
@@ -821,14 +885,14 @@ class BookRepository implements BookRepositoryInterface
                     available_copies =
                     available_copies - 1
 
-                WHERE global_book_id = ?
+                WHERE
+                    global_book_id = ?
             ";
 
 
             $updateStmt =
-                $conn->prepare(
-                    $updateSql
-                );
+                $conn
+                ->prepare($updateSql);
 
 
             if (!$updateStmt) {
@@ -850,10 +914,6 @@ class BookRepository implements BookRepositoryInterface
             $updateStmt->execute();
 
 
-            /*
-                Make sure row was updated
-            */
-
             if (
                 $updateStmt->affected_rows <= 0
             ) {
@@ -872,27 +932,32 @@ class BookRepository implements BookRepositoryInterface
 
 
             /*
+                ------------------------------------------------
                 Commit node transaction
+                ------------------------------------------------
             */
 
             $conn->commit();
-
 
             $conn->close();
 
 
             return true;
+
+
         } catch (
             Throwable $e
         ) {
 
-            /*
-                Rollback if anything fails
-            */
-
             $conn->rollback();
 
             $conn->close();
+
+
+            error_log(
+                "BookRepository::borrowBook error: "
+                . $e->getMessage()
+            );
 
 
             return false;
@@ -909,15 +974,12 @@ class BookRepository implements BookRepositoryInterface
     public function returnBook(
         $globalBookId
     ) {
+
         $globalBookId =
-            trim(
-                $globalBookId
+            strtoupper(
+                trim($globalBookId)
             );
 
-
-        /*
-            Find target node
-        */
 
         $node =
             $this->getNodeDatabase(
@@ -926,30 +988,34 @@ class BookRepository implements BookRepositoryInterface
 
 
         if (!$node) {
+
             return false;
         }
 
 
-        /*
-            Connect
-        */
+        try {
 
-        $conn =
-            $this->getNodeConnection(
-                $node
-            );
+            $conn =
+                $this->getNodeConnection(
+                    $node
+                );
+
+        } catch (
+            Throwable $e
+        ) {
+
+            return false;
+        }
 
 
         if (
+            !$conn ||
             $conn->connect_error
         ) {
+
             return false;
         }
 
-
-        /*
-            Increase available copies
-        */
 
         $sql = "
             UPDATE books
@@ -958,14 +1024,14 @@ class BookRepository implements BookRepositoryInterface
                 available_copies =
                 available_copies + 1
 
-            WHERE global_book_id = ?
+            WHERE
+                global_book_id = ?
         ";
 
 
         $stmt =
-            $conn->prepare(
-                $sql
-            );
+            $conn
+            ->prepare($sql);
 
 
         if (!$stmt) {
@@ -1007,9 +1073,12 @@ class BookRepository implements BookRepositoryInterface
     private function resolveNode(
         $category
     ) {
-        switch (strtolower(
+
+        switch (
+            strtolower(
                 trim($category)
-            )) {
+            )
+        ) {
 
             case "technology":
 
@@ -1030,5 +1099,100 @@ class BookRepository implements BookRepositoryInterface
 
                 return null;
         }
+    }
+
+
+    /*
+        ========================================================
+        Get Expected Category
+        ========================================================
+    */
+
+    private function getExpectedCategory(
+        $globalBookId
+    ) {
+
+        $globalBookId =
+            strtoupper(
+                trim($globalBookId)
+            );
+
+
+        if (
+            str_starts_with(
+                $globalBookId,
+                "TECH-"
+            )
+        ) {
+
+            return "Technology";
+        }
+
+
+        if (
+            str_starts_with(
+                $globalBookId,
+                "SCI-"
+            )
+        ) {
+
+            return "Science";
+        }
+
+
+        if (
+            str_starts_with(
+                $globalBookId,
+                "FIC-"
+            )
+        ) {
+
+            return "Fiction";
+        }
+
+
+        return null;
+    }
+
+
+    /*
+        ========================================================
+        Get Node Connection
+        ========================================================
+    */
+
+    private function getNodeConnection(
+        $database
+    ) {
+
+        $nodes =
+            $this->nodeManager
+            ->getAllNodes();
+
+
+        foreach (
+            $nodes as $node
+        ) {
+
+            if (
+                isset(
+                    $node["database"]
+                ) &&
+                $node["database"] === $database
+            ) {
+
+                return
+                    $this->nodeManager
+                    ->connect(
+                        $node
+                    );
+            }
+        }
+
+
+        throw new Exception(
+            "Unknown distributed node: "
+            . $database
+        );
     }
 }
